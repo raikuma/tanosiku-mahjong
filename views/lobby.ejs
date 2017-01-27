@@ -1,0 +1,13 @@
+<html>
+  <head>
+    <title>Lobby</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+  </head>
+  <body>
+    <p><%= name %>, <%= char %></p>
+    <img src="image/char/<%= char %>.png"/>
+    <form action="/logout" method="GET">
+      <input type="submit" value="로그아웃"></input>
+    </form>
+  </body>
+</html>
