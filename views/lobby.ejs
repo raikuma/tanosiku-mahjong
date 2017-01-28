@@ -1,13 +1,52 @@
+<!DOCTYPE html>
 <html>
   <head>
     <title>Lobby</title>
     <link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <!-- jQuery-Cookie -->
+    <script src="lib/jquerycookie/jquery.cookie.js"></script>
   </head>
   <body>
     <p><%= name %>, <%= char %></p>
     <img src="image/char/<%= char %>.png"/>
     <form action="/logout" method="GET">
-      <input type="submit" value="로그아웃"></input>
+      <input type="submit" value="로그아웃">
     </form>
+    <form action="/makeroom" method="POST">
+      <input id="room_title" type="text" name="title">
+      <input type="submit" value="방 만들기">
+    </form>
+    <div id="rooms"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+    function roomEnter(id) {
+      window.location.href = '/game/'+id;
+      console.log("Enter to", id);
+    }
+
+    $(function() {
+      let socket = io('/lobby');
+      socket.emit('req room info');
+      socket.on('room info', function(rooms) {
+        // 방 표시
+        let html = '';
+        $.each(rooms, function (index, value) {
+          html += '<p>';
+          html += value.title;
+          html += ' ('+value.people+'/4) ';
+          html += '<button onclick="roomEnter('+value.id+')">입장</button>';
+          html += '</p>';
+        });
+        $('#rooms').html(html);
+        console.log(rooms);
+      });
+
+      $('#room_title').val($.cookie('room_title'));
+    });
+    </script>
   </body>
 </html>

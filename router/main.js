@@ -35,21 +35,4 @@ module.exports = function(app)
         }
         res.redirect('/');
     });
-    app.get('/lobby', function(req, res) {
-        let sess = req.session;
-
-        if (!req.session.name) {
-            res.redirect('/');
-            return
-        }
-
-        res.render('lobby', {
-            title: "Lobby Page",
-            name: sess.name,
-            char: sess.char,
-        });
-    });
-    app.get('/game', function(req, res) {
-        res.render('game.html');
-    });
 }
