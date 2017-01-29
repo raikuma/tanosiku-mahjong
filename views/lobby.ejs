@@ -9,6 +9,7 @@
     <!-- jQuery-Cookie -->
     <script src="lib/jquerycookie/jquery.cookie.js"></script>
   </head>
+  
   <body>
     <p><%= name %>, <%= char %></p>
     <img src="image/char/<%= char %>.png"/>
@@ -17,27 +18,53 @@
     </form>
     <form action="/makeroom" method="POST">
       <input id="room_title" type="text" name="title">
+      <input type="text" name="pass">
       <input type="submit" value="방 만들기">
     </form>
     <div id="rooms"></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+
+    // 주어진 아이디의 게임 방 입장
     function roomEnter(id) {
-      window.location.href = '/game/'+id;
-      console.log("Enter to", id);
+      console.log($('#pass'+id));
+
+      // 패스워드가 없으면 바로 입장
+      if ($('#pass'+id).length == 0) {
+        window.location.href = '/game/'+id;
+        console.log("Enter to", id);
+        return
+      }
+
+      // 패스워드가 있으면 인증 후 입장
+      $.post('/roomEnter',
+      {
+        id: id,
+        pass: $('#pass'+id).val()
+      },
+      function(data, status) {
+        console.log(data);
+        if (data == 'sucess') {
+          window.location.href = '/game/'+id;
+          console.log("Enter to", id);
+        }
+      });
     }
 
     $(function() {
       let socket = io('/lobby');
-      socket.emit('req room info');
+
+      // 방 표시
       socket.on('room info', function(rooms) {
-        // 방 표시
         let html = '';
         $.each(rooms, function (index, value) {
           html += '<p>';
           html += value.title;
           html += ' ('+value.people+'/4) ';
+          if (value.pass) {
+            html += '<input id="pass'+value.id+'" type="text">';
+          }
           html += '<button onclick="roomEnter('+value.id+')">입장</button>';
           html += '</p>';
         });
@@ -45,6 +72,12 @@
         console.log(rooms);
       });
 
+      // 접속이 끊어지면 메인화면으로
+      socket.on('disconnect', function() {
+        window.location.href = '/';
+      });
+
+      // 방 제목 자동 완성
       $('#room_title').val($.cookie('room_title'));
     });
     </script>
