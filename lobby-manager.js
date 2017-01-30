@@ -1,11 +1,11 @@
 const GameManager = require('./game-manager');
 
-module.exports = function(app, io) {
+module.exports = function (app, io) {
     this.lobbyio = io.of('/lobby');
     let rooms = [];
     let roomNum = 0;
 
-    app.get('/lobby', function(req, res) {
+    app.get('/lobby', function (req, res) {
         // 로그인 확인
         if (!req.session.name) {
             res.redirect('/');
@@ -19,7 +19,7 @@ module.exports = function(app, io) {
         });
     });
     /* 방 만들기 */
-    app.post('/makeroom', function(req, res) {
+    app.post('/makeroom', function (req, res) {
         // 로그인 확인
         if (!req.session.name) {
             res.redirect('/');
@@ -45,23 +45,23 @@ module.exports = function(app, io) {
         if (room.pass != '') {
             room.info.pass = true;
             room.serial = room.info.id; // 방에 입장하기 위한 증명,
-                                        // 나중에 해쉬함수로 변경한다.
+            // 나중에 해쉬함수로 변경한다.
         }
         // 게임매니저 초기화
         room.gm = new GameManager(this, room, io)
         rooms.push(room);
         roomNum += 1;
         console.log('make room #', room.info.id);
-        console.log(rooms)
+        console.log(rooms);
 
         // 방만든 사람에게 인증 부여
         req.session.serial = room.serial;
 
         // 게임 방으로 리다이렉트
-        res.redirect('/game/'+room.info.id);
+        res.redirect('/game/' + room.info.id);
     });
     /* 방 입장 가능 여부를 여기서 판단 */
-    app.post('/roomEnter', function(req, res) {       
+    app.post('/roomEnter', function (req, res) {
         console.log(req.body.id, req.body.pass);
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].info.id == req.body.id && rooms[i].pass == req.body.pass) {
@@ -73,7 +73,7 @@ module.exports = function(app, io) {
         }
         res.send('fail');
     });
-    app.get('/game/:id', function(req, res) {
+    app.get('/game/:id', function (req, res) {
         // 로그인 확인
         if (!req.session.name) {
             res.redirect('/');
@@ -84,7 +84,7 @@ module.exports = function(app, io) {
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].info.id == req.params.id) {                // 주어진 아이디 방에서
                 if (rooms[i].info.pass == true) {                   // 비밀번호 있는 방인데
-                    if(rooms[i].serial != req.session.serial) {     // 인증 안되면
+                    if (rooms[i].serial != req.session.serial) {     // 인증 안되면
                         res.redirect('/lobby');                     // 로비로 빠꾸
                         return
                     }
@@ -99,10 +99,10 @@ module.exports = function(app, io) {
         res.redirect('/lobby');
     });
     //-실험용-----------------------------------
-    app.get('/game/:id/:pass', function(req, res) {
+    app.get('/game/:id/:pass', function (req, res) {
         // 로그인 확인
         if (!req.session.name) {
-            req.session.refer = '/game/'+req.params.id+'/'+req.params.pass;
+            req.session.refer = '/game/' + req.params.id + '/' + req.params.pass;
             res.redirect('/');
             return
         }
@@ -111,7 +111,7 @@ module.exports = function(app, io) {
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].info.id == req.params.id) {                // 주어진 아이디 방에서
                 if (rooms[i].info.pass == true) {                   // 비밀번호 있는 방인데
-                    if(rooms[i].pass != req.params.pass) {          // 인증 안되면
+                    if (rooms[i].pass != req.params.pass) {          // 인증 안되면
                         res.redirect('/lobby');                     // 로비로 빠꾸
                         return
                     }
@@ -128,7 +128,7 @@ module.exports = function(app, io) {
     //-------------------------------------------
 
     /* 소켓 통신 */
-    lobbyio.on('connection', function(socket) {
+    lobbyio.on('connection', function (socket) {
         console.log('user connected');
 
         // 접속 시 방 정보 보냄
@@ -139,7 +139,7 @@ module.exports = function(app, io) {
     this.refreshRoomInfo = function (socket) {
         if (socket == undefined) socket = lobbyio;
 
-        let roomInfo = rooms.filter(function(obj) {
+        let roomInfo = rooms.filter(function (obj) {
             // 방 인원이 0명이면 삭제
             if (obj.info.people == 0) {
                 rooms.splice(rooms.indexOf(obj), 1);
@@ -148,10 +148,10 @@ module.exports = function(app, io) {
                 return false
             }
             return true
-        }).map(function(obj) {
+        }).map(function (obj) {
             // 공개 가능한 정보만 모아 보낸다
             return obj.info;
         });
         socket.emit('room info', roomInfo);
-    }
+    };
 };
