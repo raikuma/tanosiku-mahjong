@@ -1,37 +1,83 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: mahjong.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: mahjong.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * @author RaiKuma
  * @class
  * @classdesc 마작 게임 클래스
  * @param {int} initScore 초기 점수
  */
-let Mahjong = function(initScore) {
-    //게임 정보
+function Mahjong (initScore) {
+    /** 
+     * 게임 정보
+     * @private
+     */
     this.info = {
         guk: 0,
         bon: 0,
         oya: 0
     }
 
-    //패산, 왕패
+    /**
+     * 패산, 왕패
+     * @private
+     */
     this.paiSan = [];
     this.king = [];
 
-    //플레이어 정보
+    /**
+     * 플레이어 정보
+     * @private
+     */
     this.players = [];   
 
-    //액션 큐
+    /**
+     * 액션 큐
+     * @private
+     */
     this.queue = []; 
 
     /* 점수 초기화 */
     if (!initScore) initScore = 25000;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i &lt; 4; i++) {
         this.players.push({ score: initScore });
     }
+
+    //this.guk = 0;   // 동 1 국
+    //this.bon = 0;   // 0 본장
+    //this.oya = 0;
 };
 
-// 상수
-const KINGPAINUM = 14;
-const INITSONPAINUM = 13;
+/**
+ * @constant
+ */
+Mahjong.KINGPAINUM = 14;
+Mahjong.INITSONPAINUM = 13;
 
 /**
  * 판의 초기화
@@ -50,44 +96,44 @@ Mahjong.prototype.setGame = function () {
 
     /* 패산 쌓기 */
     // 각 패가 4개
-    /*for (let k = 0; k < 4; k++) {
+    /*for (let k = 0; k &lt; 4; k++) {
         // 만 통 삭
-        for (let i = 1; i <= 3; i++) {
-            for (let j = 1; j <= 9; j++) {
+        for (let i = 1; i &lt;= 3; i++) {
+            for (let j = 1; j &lt;= 9; j++) {
                 let pai = {num: i*10 + j};
                 paiSan.splice(Math.random() * paiSan.length, 0, pai);
             }
         }
         // 동 남 서 북 백 발 중
-        for (let i = 4, j = 1; j <= 7; j++) {
+        for (let i = 4, j = 1; j &lt;= 7; j++) {
             let pai = {num: i*10 + j};
             paiSan.splice(Math.random() * paiSan.length, 0, pai);
         }
     }*/
-    for (let k = 0; k < 4; k++) {
+    for (let k = 0; k &lt; 4; k++) {
         // 만 통 삭
-        for (let i = 1; i <= 3; i++) {
-            for (let j = 1; j <= 9; j++) {
+        for (let i = 1; i &lt;= 3; i++) {
+            for (let j = 1; j &lt;= 9; j++) {
                 //this.paiSan.push(i * 10 + j);
-                let pai = {num: i*10 + j, tsumo:false};
+                let pai = {num: i*10 + j};
                 paiSan.push(pai);
             }
         }
         // 동 남 서 북 백 발 중
-        for (let i = 4, j = 1; j <= 7; j++) {
+        for (let i = 4, j = 1; j &lt;= 7; j++) {
             //this.paiSan.push(i * 10 + j);
-            let pai = {num: i*10 + j, tsumo:false};
+            let pai = {num: i*10 + j};
             paiSan.push(pai);
         }
     }
 
     /* 왕패 떼기 */
-    for (let i = 0; i < KINGPAINUM; i++) {
+    for (let i = 0; i &lt; Mahjong.KINGPAINUM; i++) {
         tsumo(paiSan, king, false);
     }
 
     /* 플레이어 설정 */
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i &lt; 4; i++) {
         let player = players[i];
 
         player.ga = (i - oya + 4) % 4;
@@ -96,12 +142,34 @@ Mahjong.prototype.setGame = function () {
         player.cry = [];
         player.state = [];
 
-        for (let j = 0; j < INITSONPAINUM; j++) {
-            tsumo(paiSan, player.sonPai, false);
+        for (let j = 0; j &lt; Mahjong.INITSONPAINUM; j++) {
+            tsumo(paiSan, player.sonPai);
         }
+
+        /*
+        // 가 설정
+        //this.player[(this.oya + i) % 4].ga = i;
+        player.ga = (i - oya + 4) % 4;
+
+        // 손패 떼기
+        player.sonPai = [];
+        for (let j = 0; j &lt; 13; j++) {
+            tsumo(this.paiSan, player.sonPai);
+        }
+
+        // 버림패 초기화
+        player.river = [];
+
+        // 운 패 초기화
+        player.cry = [];
+
+        // 초기 상태
+        player.state = [];*/
     }
+    //this.turn = this.oya;
+    //tsumo(this.paiSan, this.player[this.oya].sonPai, this.player[this.oya]);
     info.turn = oya;
-    tsumo(paiSan, players[oya].sonPai, true, players[oya]);
+    tsumo(paiSan, this.players[oya].sonPai, true);
 
     /* 도라 까기 */
     tsumo(king, dora, false);
@@ -144,12 +212,10 @@ Mahjong.prototype.showState = function () {
     console.log(players.map(function (player) {
         let ret = '';
         ret += GA(player.ga) + ' : ';
-        ret += '점수 < ' + player.score + ' > ';
+        ret += '점수 &lt; ' + player.score + ' > ';
         ret += '[ ' + paiStr(player.sonPai) + ' ] ';
         ret += '운패 [ ' + player.cry.map(function (cry) {
-            let ret = '' + paiStr(cry.pais);
-            if (cry.from) ret += '-' + cry.from
-            return ret;
+            return '' + paiStr(cry.pais) + '-' + cry.from;
         }) + ' ] ';
         ret += '상태 [ ' + player.state + ' ] ';
         ret += '버림패 [ ' + paiStr(player.river) + ' ] ';
@@ -204,36 +270,28 @@ Mahjong.prototype.doAction = function (a) {
                 return false;
             }
             // 방금 운 패는 못 버림
-            if (state.includes('cry') &&
-                a.pai.num == cry[cry.length - 1].pais[2].num) {
+            if (state.includes('cry') &amp;&amp;
+                a.pai == cry[cry.length - 1].pai[2]) {
                 console.log('**방금 운 패는 못 버림**');
                 return false;
             }
-            // 가지고 있는지
-            let pais = paiFind(sonPai, a.pai);
-            if (pais.length == 0) {
-                console.log('**손패에 없음**');
+            // 기리 성공 여부 확인
+            if (!giri(player, a.pai, a.tsumo)) {
                 return false;
             }
-            // 기리
-            giri(player, pais[0]);
 
-            // 후처리
-            player.state = [];
-            player.sonPai.forEach(function(pai) {
-                pai.tsumo = false;
-            });
+            players[info.turn].state = [];
 
             // 특수 행동 가능한 사람이 있는지 갱신
             let flag = false;
-            for (let i = 1; i < 4; i++) {
+            for (let i = 1; i &lt; 4; i++) {
                 // 자신으로 부터 오른쪽으로 돌며 검사
                 let j = (info.turn + i) % 4
                 let player = players[j];
 
                 player.state = [];
 
-                if (i == 1 && checkChi(player.sonPai, a.pai)) {
+                if (i == 1 &amp;&amp; checkChi(player.sonPai, a.pai)) {
                     player.state.push('chi');
                     flag = true;
                 }
@@ -256,7 +314,7 @@ Mahjong.prototype.doAction = function (a) {
             // 없으면 다음 턴으로
             if (!flag) {
                 this.nextTurn();
-                tsumo(paiSan, players[info.turn].sonPai, true, players[info.turn]);
+                tsumo(paiSan, players[info.turn].sonPai, true);
             }
             return true;
         }
@@ -278,7 +336,7 @@ Mahjong.prototype.doAction = function (a) {
                 console.log('**치는 2개의 패가 전달되야 함**');
                 return false;
             }
-            if (!(paiHave(sonPai, hasPais[0]) && paiHave(sonPai, hasPais[1]))) {
+            if (!(sonPai.includes(hasPais[0]) &amp;&amp; sonPai.includes(hasPais[1]))) {
                 console.log('**손패에 없음**');
                 return false;
             }
@@ -330,14 +388,15 @@ Mahjong.prototype.doAction = function (a) {
             player.state = [];
 
             // 큐에 넣는다
-            let hasPais = paiFind(sonPai, wantPai, true);
-            if (hasPais.length == 3) hasPais.pop();
-            a.hasPais = hasPais;
             a.wantPai = wantPai;
+            let pai = JSON.parse(JSON.stringify(wantPai));  // 깊은 복사
+            a.hasPais = [];
+            a.hasPais.push(pai);
+            a.hasPais.push(pai);
             this.queue.push(a);
 
             // 론이 있으면 대기
-            if (hasToWait(players, ['ron'])) {
+            if (hasToWait(this.player, ['ron'])) {
                 return true;
             }
 
@@ -345,12 +404,6 @@ Mahjong.prototype.doAction = function (a) {
             this.processQueue();
             return true;
         }
-        /**
-         * 깡
-         * @param {Action} action kang
-         * @param {int} player 깡 하는 플레이어 넘버
-         * @param {Array} hasPais 가지고 있는 패
-         */
         case 'kang': {
             // 유효성 체크
             if (!state.includes('kang')) {
@@ -367,7 +420,7 @@ Mahjong.prototype.doAction = function (a) {
             }
 
             // 사깡즈
-            if (this.dora.length >= 4) {
+            if (this.dora.length == 4) {
                 console.log('**사깡즈**');
                 return false;
             }
@@ -375,51 +428,22 @@ Mahjong.prototype.doAction = function (a) {
             player.state = [];
 
             // 큐에 넣는다
-            let hasPais = paiFind(sonPai, wantPai, true);
-            a.hasPais = hasPais;
             a.wantPai = wantPai;
+            let pai = JSON.parse(JSON.stringify(wantPai));
+            a.hasPais = [];
+            a.hasPais.push(pai);
+            a.hasPais.push(pai);
+            a.hasPais.push(pai);
             queue.push(a);
 
             // 론이 있으면 대기
-            if (hasToWait(players, ['ron'])) {
+            if (hasToWait(this.player, ['ron'])) {
                 return true;
             }
 
             // 아니면 진행
             this.processQueue();
             return true;
-        }
-        /**
-         * 안깡
-         * @param {Action} action ankang
-         * @param {int} player 안깡 하는 플레이어 넘버
-         */
-        case 'ankang': {
-            // 유효성 체크
-            if (!state.includes('tsumo')) {
-                console.log('**안깡 가능한 상태 아님**');
-                return false;
-            }
-            let pais = checkAnkang(sonPai)
-            if (pais.length != 4) {
-                console.log('**안깡 불가능**');
-                return false;
-            }
-
-            // 사깡즈
-            if (this.dora.length >= 4) {
-                console.log('**사깡즈**');
-                return false;
-            }
-
-
-            let tmp = {pais: pais};
-            cry.push(tmp);
-
-            // 영상패 쯔모
-            tsumo(paiSan, players[kang.player].sonPai, true, players[kang.player]);
-            // 도라 추가
-            tsumo(this.king, this.dora, false);
         }
         case 'ron':
             return true;
@@ -430,9 +454,6 @@ Mahjong.prototype.doAction = function (a) {
         case 'rich':
             return true;
 
-        /**
-         * 캔슬
-         */
         case 'cancel': {
             player.state = [];
             if (hasToWait(players, ['chi', 'pong', 'kang', 'ron'])) {
@@ -460,7 +481,7 @@ Mahjong.prototype.processQueue = function () {
     /* 아무 행동도 없음 다음 차례로 */
     if (queue.length == 0) {
         this.nextTurn();
-        tsumo(paiSan, players[info.turn].sonPai, true, players[info.turn]);
+        tsumo(paiSan, players[info.turn].sonPai, true);
         return;
     }
 
@@ -492,7 +513,7 @@ Mahjong.prototype.processQueue = function () {
         info.turn = kang.player;
 
         // 영상패 쯔모
-        tsumo(paiSan, players[kang.player].sonPai, true, players[kang.player]);
+        tsumo(paiSan, players[kang.player].sonPai, true);
         // 도라 추가
         tsumo(this.king, this.dora, false);
 
@@ -508,17 +529,16 @@ Mahjong.prototype.processQueue = function () {
 
     /* 치 */
     } else if (chi.length != 0) {
-        console.log('치')
         chi = chi[0];
 
         sonPai = players[chi.player].sonPai;
         wantPai = chi.wantPai;
 
-        cry(players[chi.player], info.turn, chi.hasPais, wantPai);
+        cry(players[pong.player], info.turn, chi.hasPais, wantPai);
         info.turn = chi.player;
     }
 
-    this.queue = [];
+    queue = [];
     return;
 }
 
@@ -534,29 +554,6 @@ Mahjong.prototype.nextTurn = function() {
 }
 
 module.exports = Mahjong;
-
-/**
- * 같은 패 여부
- */
-let paiEqual = function(pai1, pai2, numOnly) {
-    if (pai1.num != pai2.num) return false;
-    if ((pai1.tsumo != pai2.tsumo) && !numOnly) return false;
-    return true;
-}
-
-/**
- * 패 포함 여부
- */
-function paiFind(arr, pai, numOnly) {
-    return arr.filter(function(p) {
-        if (paiEqual(p, pai, numOnly)) return true;
-        return false;
-    })
-}
-function paiHave(sonPai, pai) {
-    if (paiFind(sonPai, pai).length != 0) return true;
-    return false;
-}
 
 /**
  * 울기
@@ -592,15 +589,11 @@ let cry = function (player, from, hasPais, wantPai) {
  * @param {Array} from Source
  * @param {Array} to Destination
  * @param {Bool} tsumo 쯔모 패 여부
- * @param {Player} player [상태 표시 용]
  */
-let tsumo = function (from, to, tsumo, player) {
+let tsumo = function (from, to, tsumo) {
     let pai = from.pop();
     pai.tsumo = tsumo;
     to.push(pai);
-    if (tsumo) {
-        player.state.push('tsumo');
-    }
 }
 
 /**
@@ -611,6 +604,22 @@ let tsumo = function (from, to, tsumo, player) {
 let giri = function (player, pai) {
     let sonPai = player.sonPai;
 
+    // 패 유효성 검사
+    /*if (tsumo &amp;&amp; (sonPai[sonPai.length - 1] != pai)) {
+        console.log('**쯔모 패가 아님 1**');
+        return false;
+    }
+    if ((sonPai.indexOf(pai) == sonPai.length - 1) &amp;&amp; !tsumo &amp;&amp;
+    player.state.includes('tsumo')) {
+        console.log('**쯔모 패가 아님 2**');
+        return false;
+    }*/
+
+    if (sonPai.indexOf(pai) == -1) {
+        console.log('**손패에 없음**');
+        return false;
+    }
+    
     sonPai.splice(sonPai.indexOf(pai), 1);
     player.river.push(pai);
     return true;
@@ -629,18 +638,17 @@ let checkChi = function (sonPai, pai) {
         return false;
     }
 
-    let pais = [
-        {num: n-2, tsumo: false},
-        {num: n-1, tsumo: false},
-        {num: n+1, tsumo: false},
-        {num: n+2, tsumo: false}
-    ]
-
-    for (let i = 0; i < 4; i++) {
-        if (paiHave(sonPai, pais[i]) &&
-        paiHave(sonPai, pais[i+1])) {
-            return true;
-        }
+    // 1번 케이스
+    if (sonPai.includes(n - 2) &amp;&amp; sonPai.includes(n - 1)) {
+        return true;
+    }
+    // 2번 케이스
+    if (sonPai.includes(n - 1) &amp;&amp; sonPai.includes(n + 1)) {
+        return true;
+    }
+    // 3번 케이스
+    if (sonPai.includes(n + 1) &amp;&amp; sonPai.includes(n + 2)) {
+        return true;
     }
 
     return false;
@@ -678,10 +686,6 @@ let checkKang = function (sonPai, pai) {
     return false;
 }
 
-let checkAnkang = function(sonPai) {
-    return [];
-}
-
 let checkRon = function (player, pai) {
     return false;
 }
@@ -692,8 +696,8 @@ let checkRon = function (player, pai) {
  * @param {Array} states 기다릴 상태
  */
 let hasToWait = function (players, states) {
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < states.length; j++) {
+    for (let i = 0; i &lt; 4; i++) {
+        for (let j = 0; j &lt; states.length; j++) {
             if (players[i].state.includes(states[j])) {
                 return true;
             }
@@ -738,4 +742,26 @@ function PAI(pai) {
         /* 1통 -> 11 */
     } else {
     }
-}
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Mahjong.html">Mahjong</a></li></ul><h3>Global</h3><ul><li><a href="global.html#checkChi">checkChi</a></li><li><a href="global.html#checkKang">checkKang</a></li><li><a href="global.html#checkPong">checkPong</a></li><li><a href="global.html#cry">cry</a></li><li><a href="global.html#giri">giri</a></li><li><a href="global.html#hasToWait">hasToWait</a></li><li><a href="global.html#tsumo">tsumo</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Feb 02 2017 00:09:31 GMT+0900 (러시아 TZ 8 표준시)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

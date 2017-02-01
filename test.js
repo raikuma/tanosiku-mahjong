@@ -1,26 +1,24 @@
 console.log('====================================DEBUG===================================');
 
 const Mahjong = require('./mahjong');
-let mj = new Mahjong();
+let mj = new Mahjong(30000);
 
-mj.init(25000);
 mj.setGame();
-mj.player[2].sonPai[0] = 12;
-mj.player[2].sonPai[1] = 12;
-mj.player[2].sonPai[2] = 12;
+mj.players[2].sonPai[0] = {num:12};
+mj.players[2].sonPai[1] = {num:12};
+mj.players[2].sonPai[2] = {num:12};
 mj.showState();
 
 if (mj.doAction({
     player: 0,
     action: 'giri',
-    pai: 12,
-    tsumo: true
+    pai: {num:12, tsumo:true},
 })) mj.showState();
 
 if(mj.doAction({
     player: 1,
     action: 'chi',
-    pai: [11, 13]
+    hasPais: [{num:11, tsumo:false}, {num:13, tsumo:false}]
 })) mj.showState();
 
 if (mj.doAction({
@@ -31,19 +29,19 @@ if (mj.doAction({
 if(mj.doAction({
     player: 2,
     action: 'giri',
-    pai: 27,
+    pai: {num:27, tsumo:false},
 })) mj.showState();
 
 if(mj.doAction({
     player: 3,
     action: 'chi',
-    pai: [26, 25]
+    hasPais: [{num:26, tsumo:false}, {num:25, tsumo:false}]
 })) mj.showState();
 
 if(mj.doAction({
     player: 3,
     action: 'giri',
-    pai: 23,
+    pai: {num:23, tsumo:false}
 })) mj.showState();
 
 if (mj.doAction({
@@ -65,8 +63,8 @@ mj.doAction({
     tsumo: true
 });
 mj.showState();*/
-
-/*mj.nextGame();
+/*
+mj.nextGame();
 mj.setGame()
 mj.showState();
 

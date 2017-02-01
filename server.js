@@ -21,6 +21,7 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const router = require('./router/main')(app);
 const lobbyManager = require('./lobby-manager')(app, io);
+const debug = require('./debug')(app, io);
 
 http.listen(3000, function () {
     console.log('Example app listenling on port 3000!');

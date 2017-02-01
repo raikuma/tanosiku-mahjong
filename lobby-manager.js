@@ -128,7 +128,7 @@ module.exports = function (app, io) {
     //-------------------------------------------
 
     /* 소켓 통신 */
-    lobbyio.on('connection', function (socket) {
+    this.lobbyio.on('connection', function (socket) {
         console.log('user connected');
 
         // 접속 시 방 정보 보냄
@@ -137,7 +137,7 @@ module.exports = function (app, io) {
 
     /* 방 정보 갱신 */
     this.refreshRoomInfo = function (socket) {
-        if (socket == undefined) socket = lobbyio;
+        if (socket == undefined) socket = this.lobbyio;
 
         let roomInfo = rooms.filter(function (obj) {
             // 방 인원이 0명이면 삭제
