@@ -119,6 +119,32 @@ function setTrigger() {
             });
         }
 
+        // 깡
+        if (player.state.includes('kang')) {
+            flag = true;
+            $('#pinfo'+i).append('<button id="kang'+i+'">깡</button>');
+            $('#kang'+i).click(function() {
+                let a = {
+                    action: 'kang',
+                    player: i
+                };
+                doAction(a);
+            });
+        }
+
+        // 안깡
+        if (player.state.includes('ankang')) {
+            flag = true;
+            $('#pinfo'+i).append('<button id="ankang'+i+'">안깡</button>');
+            $('#ankang'+i).click(function() {
+                let a = {
+                    action: 'ankang',
+                    player: i
+                };
+                doAction(a);
+            });
+        }
+
         // 캔슬
         if (flag == true) {
             $('#pinfo'+i).append('<button id="cancel'+i+'">캔슬</button>');
@@ -170,6 +196,9 @@ function refreshInfo() {
         html = '<span>운패: </span>';
         player.cry.forEach(function (cry) {
             let from = (i - cry.from + 4) % 4 - 1;
+            if (cry.pais.length == 4 && from == 2) {
+                from = 3;
+            }
             let tmp = cry.pais.pop();
             cry.pais.splice(from, 0, tmp);
             for (let j = 0; j < cry.pais.length; j++) {

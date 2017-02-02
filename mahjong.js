@@ -246,7 +246,7 @@ Mahjong.prototype.doAction = function (a) {
 
                 player.state = [];
 
-                if (i == 1 && checkChi(player.sonPai, a.pai)) {
+                if (i == 1 && checkChi(player.sonPai, a.pai).length != 0) {
                     player.state.push('chi');
                     flag = true;
                 }
@@ -299,7 +299,7 @@ Mahjong.prototype.doAction = function (a) {
                 console.log('**가져갈 버림패 없음**');
                 return false;
             }
-            if (!checkChi(hasPais, wantPai.pai)) {
+            if (checkChi(hasPais, wantPai.pai).length == 0) {
                 console.log('**치 불가능**');
                 return false;
             }
@@ -412,8 +412,8 @@ Mahjong.prototype.doAction = function (a) {
                 console.log('**안깡 가능한 상태 아님**');
                 return false;
             }
-            let pais = checkAnkang(sonPai)
-            if (pais.length != 4) {
+            let pai = checkAnkang(sonPai);
+            if (pai == null) {
                 console.log('**안깡 불가능**');
                 return false;
             }
@@ -424,8 +424,14 @@ Mahjong.prototype.doAction = function (a) {
                 return false;
             }
 
-            let tmp = {pais: pais};
-            cry.push(tmp);
+            // 손패에서 제거
+            while (sonPai.indexOf(pai) != -1) {
+                sonPai.splice(sonPai.indexOf(pai), 1)
+            }
+
+            // 운패에 추가
+            let hasPais = [pai, pai, pai, pai];
+            cry.push(hasPais);
 
             // 영상패 쯔모
             tsumo(paiSan, players[kang.player].sonPai, true, players[kang.player]);
@@ -584,13 +590,18 @@ let cry = function (player, from, hasPais, wantPai) {
  */
 let tsumo = function (from, to, tsumo, player) {
     let pai = from.pop();
-    //pai.tsumo = tsumo;
-    if (tsumo) {
-        player.tsumoPai = pai;
-        player.state.push('tsumo');
-    } else {
+    if (!tsumo) {
         to.push(pai);
+        return;
     }
+
+    player.tsumoPai = pai;
+    player.state.push('tsumo');
+
+    //console.log('checkAnkang');
+    /*if (checkAnkang(player.sonPai.concat(pai))) {
+        player.state.push('ankang');
+    }*/
 }
 
 /**
@@ -624,25 +635,27 @@ let giri = function (player, pai, tsumo) {
  * @param {Pai} pai 가져올 패
  */
 let checkChi = function (sonPai, pai) {
+    let chiPais = [];
+
     // 자패면 패스
     if (parseInt(pai / 10) == 4) {
-        return false;
+        return chiPais;
     }
 
     // 1번 케이스
     if (sonPai.includes(pai - 2) && sonPai.includes(pai - 1)) {
-        return true;
+        chiPais.push([pai - 2, pai - 1]);
     }
     // 2번 케이스
     if (sonPai.includes(pai - 1) && sonPai.includes(pai + 1)) {
-        return true;
+        chiPais.push([pai - 1, pai + 1]);
     }
     // 3번 케이스
     if (sonPai.includes(pai + 1) && sonPai.includes(pai + 2)) {
-        return true;
+        chiPais.push([pai + 1, pai + 2]);
     }
 
-    return false;
+    return chiPais;
 }
 
 /**
@@ -678,11 +691,114 @@ let checkKang = function (sonPai, pai) {
 }
 
 let checkAnkang = function(sonPai) {
-    return [];
+    //console.log(sonPai);
+    while (sonPai.length != 0) {
+        let pai = sonPai.pop();
+        let cnt = 1;
+        while (sonPai.indexOf(pai) != -1) {
+            sonPai.splice(sonPai.indexOf(pai), 1)
+            cnt++;
+        }
+        //console.log(cnt);
+        if (cnt == 4) return pai;
+    }
+    return null;
 }
 
 let checkRon = function (player, pai) {
-    return false;
+    let sonPai = player.sonPai;
+
+    if (!checkDragon(sonPai.concat(pai))) {
+        return false;
+    }
+
+    return true;
+}
+
+// 형태의 완성도
+let checkDragon = function(pais) {
+    // 일단 종류별로 나눈다
+    /*supais = [[],[],[]];
+    japai = [];
+    pais.forEach(function(pai) {
+        let t = parseInt(pai/10);
+        // 수패
+        if (t <= 3) {
+            supais[t-1].push(pai);
+        } else {
+            japai.push(pai);
+        }
+    });*/
+    return checkChunk(pais, false);
+}
+
+// 재귀용
+let checkChunk = function(pais, cantHead) {
+    console.log(pais.sort(), cantHead);
+
+    if (pais.length == 1) {
+        console.log('**패 하나 남음**');
+        return false;
+    } else if (pais.length == 2) {
+        if (cantHead) {
+            console.log('**머리 있음**');
+            return false;
+        }
+        if (pais[0] != pais[1]) {
+            console.log('**머리 안됨**');
+            return false;
+        }
+        return true;
+    } else if (pais.length == 0) {
+        return true;
+    }
+
+    for (let i = 0; i < pais.length; i++) {
+        let pai = pais[i];
+        let leftPai = deepCopy(pais);
+        let flag = false;
+        leftPai.splice(leftPai.indexOf(pai), 1);
+        // 1번 머리
+        if (!cantHead && leftPai.includes(pai)) {
+            flag = true;
+            let tmp = deepCopy(leftPai);
+            tmp.splice(tmp.indexOf(pai), 1);
+            //console.log(tmp, '머리', pai, pai)
+            if (checkChunk(tmp, true)) {
+                return true;
+            }
+        }
+        // 2번 슌츠
+        let chiPais = checkChi(leftPai, pai);
+        if (chiPais.length != 0) {
+            flag = true;
+            for (let j = 0; j < chiPais.length; j++) {
+                chiPai = chiPais[j];
+                let tmp = deepCopy(leftPai);
+                tmp.splice(tmp.indexOf(chiPai[0]), 1);
+                tmp.splice(tmp.indexOf(chiPai[1]), 1);
+                //console.log(tmp, '슌츠', pai, chiPai);
+                if (checkChunk(tmp, cantHead)) {
+                    return true;
+                }
+            }
+        }
+        // 3번 커츠
+        if (checkPong(leftPai, pai)) {
+            flag = true;
+            let tmp = deepCopy(leftPai);
+            tmp.splice(tmp.indexOf(pai), 1);
+            tmp.splice(tmp.indexOf(pai), 1);
+            //console.log(tmp, '커츠', pai, pai, pai);
+            if (checkChunk(tmp, cantHead)){
+                return true;
+            }
+        }
+        // 아무 쓸모 없는 패가 있음,
+        if (flag == false) {
+            return false;
+        }
+    }
 }
 
 /**
@@ -699,6 +815,13 @@ let hasToWait = function (players, states) {
         }
     }
     return false;
+}
+
+function deepCopy(src) {
+    let des = src.map(function(e) {
+        return e;
+    });
+    return des;
 }
 
 function GA(ga) {
