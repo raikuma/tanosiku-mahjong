@@ -1,5 +1,6 @@
 let mj;
 let socket;
+let chiPais;
 
 $(function () {
     let con = $('#player');
@@ -31,32 +32,103 @@ function doAction(a) {
     socket.emit('action', a);
 }
 
+function chi(pai, player) {
+    console.log(pai, chiPais);
+    let leftchiPais = [];
+    chiPais.forEach(function(pais) {
+        if (pais.includes(pai)) {
+            leftchiPais.push(pais);
+        }
+    })
+    // 남은게 하나면 바로 ㄱㄱ
+    if (leftchiPais.length == 1) {
+        let a = {
+            action: 'chi',
+            player: player,
+            hasPais: leftchiPais[0]
+        };
+        doAction(a);
+    // 없으면 잘못 고른것
+    } else if (leftchiPais.length == 0) {
+        return
+    // 아니면 대기
+    } else {
+        chiPais = leftchiPais;
+    }
+}
+
 function setTrigger() {
+    //가져올 패가 있는 플레이어의 강
+    let river = mj.players[mj.info.turn].river;
+    // 가져올 패
+    let wantPai = river[river.length-1];
+
     for (let i = 0; i < 4; i++) {
         let player = mj.players[i];
 
         // 기리
-        $('#pai'+i+' img').click(function() {
-            let a = {
-                player: i,
-                action: 'giri',
-                pai: {num:parseInt(this.alt), tsumo:false}
-            };
-            if ((' '+this.className+' ').indexOf(' tsumo ') != -1) {
-                a.pai.tsumo = true;
-            }
-            doAction(a);
-        })
+        if (player.state.includes('tsumo') || player.state.includes('cry')) {
+            $('#pai'+i+' img').click(function() {
+                let a = {
+                    action: 'giri',
+                    player: i,
+                    pai: parseInt(this.alt)
+                };
+                if ((' '+this.className+' ').indexOf(' tsumo ') != -1) {
+                    a.tsumo = true;
+                }
+                doAction(a);
+            })
+        }
 
-        // 버튼
+        // 캔슬 플래그
+        let flag = false;
+        // 치
         if (player.state.includes('chi')) {
+            flag = true;
             $('#pinfo'+i).append('<button id="chi'+i+'">치</button>');
-            $('#chi'+i).click({i:i}, function(event) {
-                let i = event.data.i;
-                let river = mj.players[mj.info.turn].river;
-                let wantPai = river[river.length-1];
-                console.log(checkChi(mj.players[i].sonPai, wantPai))
+            $('#chi'+i).click(function(event) {
+                chiPais = checkChi(player.sonPai, wantPai.pai);
+                console.log(chiPais);
+                // 가능한 경우가 하나면 바로 치
+                if (chiPais.length == 1) {
+                    let a = {
+                        action: 'chi',
+                        player: i,
+                        hasPais: chiPais[0]
+                    };
+                    doAction(a);
+                    return;
+                }
+
+                // 아니면 버튼등록
+                $('#pai'+i+' img').click(function() {chi(parseInt(this.alt), i)});
             });
+        }
+
+        // 퐁
+        if (player.state.includes('pong')) {
+            flag = true;
+            $('#pinfo'+i).append('<button id="pong'+i+'">퐁</button>');
+            $('#pong'+i).click(function() {
+                let a = {
+                    action: 'pong',
+                    player: i
+                };
+                doAction(a);
+            });
+        }
+
+        // 캔슬
+        if (flag == true) {
+            $('#pinfo'+i).append('<button id="cancel'+i+'">캔슬</button>');
+            $('#cancel'+i).click(function() {
+                let a = {
+                    action: 'cancel',
+                    player: i
+                };
+                doAction(a);
+            })
         }
     }
 }
@@ -74,8 +146,8 @@ function refreshInfo() {
     mj.dora.forEach(function (pai) {
         html += IMG(pai);
     });
-
     $('#dora').html(html);
+
     for (let i = 0; i < 4; i++) {
         let player = mj.players[i];
 
@@ -85,22 +157,13 @@ function refreshInfo() {
         );
 
         let html = '';
-        let tsumoPai = player.sonPai.filter(function(pai) {
-            if (pai.tsumo == true) return true;
-            return false;
-        });
-        if (tsumoPai.length != 0) {
-            player.sonPai.splice(player.sonPai.indexOf(tsumoPai), 1);
-        }
-        player.sonPai.sort(function(A, B) {
-            return (A.num - B.num)
-        });
+        player.sonPai.sort();
         player.sonPai.forEach(function (pai) {
             html += IMG(pai);
         })
-        if (tsumoPai.length != 0) {
+        if (player.tsumoPai != null) {
             html += '<span> </span>';
-            html += IMG(tsumoPai[0], 'tsumo');
+            html += IMG(player.tsumoPai, 'tsumo');
         }
         $('#pai' + i).html(html);
 
@@ -120,14 +183,14 @@ function refreshInfo() {
         $('#cry' + i).html(html);
 
         html = '<span>버림패: </span>';
-        player.river.forEach(function (pai) {
-            if (!pai.take) {
-                if (pai.rich) {
+        player.river.forEach(function (expai) {
+            if (!expai.take) {
+                if (expai.rich) {
 
                 } else {
 
                 }
-                html += IMG(pai);
+                html += IMG(expai.pai);
             }
         })
         $('#river' + i).html(html);
@@ -135,7 +198,7 @@ function refreshInfo() {
 }
 
 function IMG(pai, cls) {
-    let ret = '<img src=image/pai/' + pai.num + '.gif alt="' + pai.num + '" ';
+    let ret = '<img src=image/pai/' + pai + '.gif alt="' + pai + '" ';
     if (cls) {
         ret += 'class=' + cls;
     }
@@ -143,25 +206,23 @@ function IMG(pai, cls) {
     return ret;
 }
 
-function checkChi (sonPai, pai) {
-    let n = pai.num
+let checkChi = function (sonPai, pai) {
+    let chiPais = [];
 
-    let pais = [
-        {num: n-2, tsumo: false},
-        {num: n-1, tsumo: false},
-        {num: n+1, tsumo: false},
-        {num: n+2, tsumo: false}
-    ]
-    let ret = [];
-
-    for (let i = 0; i < 4; i++) {
-        if (paiHave(sonPai, pais[i]) &&
-        paiHave(sonPai, pais[i+1])) {
-            return true;
-        }
+    // 1번 케이스
+    if (sonPai.includes(pai - 2) && sonPai.includes(pai - 1)) {
+        chiPais.push([pai - 2, pai - 1]);
+    }
+    // 2번 케이스
+    if (sonPai.includes(pai - 1) && sonPai.includes(pai + 1)) {
+        chiPais.push([pai - 1, pai + 1]);
+    }
+    // 3번 케이스
+    if (sonPai.includes(pai + 1) && sonPai.includes(pai + 2)) {
+        chiPais.push([pai + 1, pai + 2]);
     }
 
-    return false;
+    return chiPais;
 }
 
 /**

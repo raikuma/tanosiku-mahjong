@@ -11,8 +11,8 @@ module.exports = function (app, _io) {
     io.on('connection', function(socket) {
         console.log('debug start');
         mj.setGame();
-        mj.showState();
-        console.log(mj.players[1].sonPai.length);
+        mj.players[3].sonPai[0] = 12;
+        mj.players[3].sonPai[1] = 12;
         io.emit('mj', makePacket(mj));
 
         socket.on('action', function(a) {

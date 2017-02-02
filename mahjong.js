@@ -50,21 +50,21 @@ Mahjong.prototype.setGame = function () {
 
     /* 패산 쌓기 */
     // 각 패가 4개
-    /*for (let k = 0; k < 4; k++) {
+    for (let k = 0; k < 4; k++) {
         // 만 통 삭
         for (let i = 1; i <= 3; i++) {
             for (let j = 1; j <= 9; j++) {
-                let pai = {num: i*10 + j};
+                let pai = i*10 + j;
                 paiSan.splice(Math.random() * paiSan.length, 0, pai);
             }
         }
         // 동 남 서 북 백 발 중
         for (let i = 4, j = 1; j <= 7; j++) {
-            let pai = {num: i*10 + j};
+            let pai = i*10 + j;
             paiSan.splice(Math.random() * paiSan.length, 0, pai);
         }
-    }*/
-    for (let k = 0; k < 4; k++) {
+    }
+    /*for (let k = 0; k < 4; k++) {
         // 만 통 삭
         for (let i = 1; i <= 3; i++) {
             for (let j = 1; j <= 9; j++) {
@@ -79,7 +79,7 @@ Mahjong.prototype.setGame = function () {
             let pai = i*10 + j;
             paiSan.push(pai);
         }
-    }
+    }*/
 
     /* 왕패 떼기 */
     for (let i = 0; i < KINGPAINUM; i++) {
