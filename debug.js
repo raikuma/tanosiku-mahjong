@@ -1,5 +1,6 @@
 const Mahjong = require('./mahjong')
 let mj = new Mahjong(25000);
+mj.setGame();
 
 module.exports = function (app, _io) {
     let io = _io.of('/debug');
@@ -10,9 +11,6 @@ module.exports = function (app, _io) {
 
     io.on('connection', function(socket) {
         console.log('debug start');
-        mj.setGame();
-        mj.players[0].sonPai[0] = 23;
-        mj.players[3].sonPai = [11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 41, 41];
         io.emit('mj', makePacket(mj));
 
         socket.on('action', function(a) {
@@ -20,7 +18,15 @@ module.exports = function (app, _io) {
                 io.emit('mj', makePacket(mj));
             }
         });
-    });
+
+        socket.on('newgame', function(socket) {
+            console.log('new game');
+            mj.setGame();
+            mj.players[0].sonPai[0] = 41;
+            mj.players[3].sonPai = [11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 18, 18, 41];
+            io.emit('mj', makePacket(mj));
+        });
+    })
 
     function makePacket(mj) {
         let ret = {

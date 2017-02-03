@@ -715,40 +715,19 @@ let checkRon = function (player, pai) {
     return true;
 }
 
-// 형태의 완성도
+// 화료 가능 여부
 let checkDragon = function(pais) {
-    // 일단 종류별로 나눈다
-    /*supais = [[],[],[]];
-    japai = [];
-    pais.forEach(function(pai) {
-        let t = parseInt(pai/10);
-        // 수패
-        if (t <= 3) {
-            supais[t-1].push(pai);
-        } else {
-            japai.push(pai);
-        }
-    });*/
-    return checkChunk(pais, false);
+    // 일단 형태를 본다
+    return checkChunk(pais, false) || checkChiToi(pais);
 }
 
-// 재귀용
+// 3-3-3-2 재귀용
 let checkChunk = function(pais, cantHead) {
-    console.log(pais.sort(), cantHead);
+    //console.log(pais.sort(), cantHead);
 
     if (pais.length == 1) {
-        console.log('**패 하나 남음**');
+        //console.log('**패 하나 남음**');
         return false;
-    } else if (pais.length == 2) {
-        if (cantHead) {
-            console.log('**머리 있음**');
-            return false;
-        }
-        if (pais[0] != pais[1]) {
-            console.log('**머리 안됨**');
-            return false;
-        }
-        return true;
     } else if (pais.length == 0) {
         return true;
     }
@@ -797,6 +776,33 @@ let checkChunk = function(pais, cantHead) {
         // 아무 쓸모 없는 패가 있음,
         if (flag == false) {
             return false;
+        }
+    }
+}
+
+// 칠대자
+let checkChiToi = function(pais) {
+    if (pais.length == 1) {
+        //console.log('**패 하나 남음**');
+        return false;
+    } else if (pais.length == 0) {
+        return true;
+    }
+
+    for (let i = 0; i < pais.length; i++) {
+        let pai = pais[i];
+        let leftPai = deepCopy(pais);
+        let flag = false;
+        leftPai.splice(leftPai.indexOf(pai), 1);
+        // 1번 머리
+        if (leftPai.includes(pai)) {
+            flag = true;
+            let tmp = deepCopy(leftPai);
+            tmp.splice(tmp.indexOf(pai), 1);
+            //console.log(tmp, '머리', pai, pai)
+            if (checkChiToi(tmp)) {
+                return true;
+            }
         }
     }
 }

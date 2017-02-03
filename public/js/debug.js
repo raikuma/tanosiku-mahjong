@@ -25,6 +25,10 @@ $(function () {
         refreshInfo();
         setTrigger();
     })
+
+    $('#newgame').click(function() {
+        socket.emit('newgame');
+    })
 })
 
 function doAction(a) {
@@ -33,7 +37,7 @@ function doAction(a) {
 }
 
 function chi(pai, player) {
-    console.log(pai, chiPais);
+    //console.log(pai, chiPais);
     let leftchiPais = [];
     chiPais.forEach(function(pais) {
         if (pais.includes(pai)) {
@@ -83,13 +87,26 @@ function setTrigger() {
 
         // 캔슬 플래그
         let flag = false;
+        // 론
+        if (player.state.includes('ron')) {
+            flag = true;
+            $('#pinfo'+i).append('<button id="ron'+i+'">론</button>');
+            $('#ron'+i).click(function(event) {
+                let a = {
+                    action: 'ron',
+                    player: i
+                };
+                doAction(a)
+            });
+        }
+
         // 치
         if (player.state.includes('chi')) {
             flag = true;
             $('#pinfo'+i).append('<button id="chi'+i+'">치</button>');
             $('#chi'+i).click(function(event) {
                 chiPais = checkChi(player.sonPai, wantPai.pai);
-                console.log(chiPais);
+                //console.log(chiPais);
                 // 가능한 경우가 하나면 바로 치
                 if (chiPais.length == 1) {
                     let a = {
