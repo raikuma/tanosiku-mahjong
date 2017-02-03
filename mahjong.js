@@ -807,6 +807,153 @@ let checkChiToi = function(pais) {
     }
 }
 
+// 화료 가능 여부
+let checkWin = function(player, pai) {
+    // 화료 가능 모양인지 체크
+
+    
+}
+
+
+// 족보체크
+let checkJocbo = function(player, pai) {
+    let jocbo = [];
+
+    // 족보 체크
+    let playerInfo = getPlayerInfo(player);
+    let paiInfo = getPaiInfo(player.sonPai.concat(pai));
+
+    //----------------- 역만 체크
+    /* 멘젠 한정 */
+    // 천화
+    // 지화
+    // 사안커
+    // 국사무쌍
+    // 구련보등
+    // 순정구련보등
+
+    /* 멘젠 비한정 */
+    // 녹일색
+    // 자일색
+    if (paiInfo.chung == true) {
+        jocbo.push('ja')
+    }
+    // 대삼원 - 책임지불
+    // 소사희
+    // 대사희 - 책임지불
+    // 사깡즈 - 책임지불
+    // 역만이면 그 이하 역과는 중복이 안된다
+    if (jocbo.length != 0) return jocbo;   
+
+    //----------------- 특수 만관
+    // 인화
+    // 유국만관
+
+    //----------------- 일반 족보
+    /* 멘젠 한정 */
+    //-- 1 --//
+    // 멘젠쯔모
+    // 리치
+    if (playerInfo.rich == true) {
+        jocbo.push('rich');
+    }
+    // 일발
+    // 핑후
+    // 이페코
+
+    //-- 2 --//
+    // 더블리치
+    // 칠대자
+
+    //-- 3 --//
+    // 량페코
+
+    /* 멘젠 준한정 */
+    //-- 2 --//
+    // 삼색동순
+    // 일기통관
+    // 찬타
+
+    //-- 3 --//
+    // 준찬타
+    // 혼일색
+    if (paiInfo.hon == true) {
+        jocbo.push('honil');
+    }
+
+    /* 멘젠 비한정 */
+    //-- 1 --//
+    // 삼원패 백 발 중
+    // 자풍패 동 남 서 북
+    // 장풍패 - 현재 국의 바람패
+    // 탕야오
+    // 영상개화
+    // 챵깡
+    // 해저로월 - 마지막 패로 쯔모
+    // 하저로어 - 마지막 패로 론
+
+    //-- 2 --//
+    // 또이또이
+    // 삼안커
+    // 삼색동각
+    // 소삼원
+    // 혼노두
+    // 삼깡즈
+    // 혼일색
+
+    //-- 6 --//
+    // 청일색
+    if (paiInfo.chung == true) {
+        jocbo.push('chungil');
+    }
+}
+
+// 플레이어 정보
+let getPlayerInfo = function (player) {
+    let info = {
+        rich: false,    // 리치
+        isCry: false,   // 울었는가
+    }
+
+    player.cry.forEach(function(cry) {
+        // 패를 가져온 흔적이 있으면 울었음
+        if (cry.from) info.isCry = true;
+    });
+    
+    if (player.info.rich == true) {
+        info.rich = true;
+    }
+
+    return info;
+}
+
+// 패 정보
+let getPaiInfo = function (pais) {
+    let info = {
+        chung: false,   // 청일색
+        ja: false,      // 자일색
+        hon: false,     // 혼일색
+        honnodu: false, // 혼노두
+    }
+
+    return info;
+}
+
+// 패의 개별 정보를 수집한다.
+let checkPaiInfo2 = function (player, pai) {
+    let info = {
+        shun: 0,        // 슌츠의 갯수
+        cut: 0,         // 커츠의 갯수
+        type: '',       // 대기 형태 ('both', 'middle', 'shabo', 'short')
+    };
+    return info;
+}
+
+// 만들수 있는 패의 형태를 리턴
+let makeChunk = function(sonPai, out) {
+
+}
+
 /**
  * 다른 플레이어가 해당하는 상태를 가지고 있는지 판단
  * @param {Array} players 플레이어 배열
