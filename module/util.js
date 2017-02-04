@@ -67,6 +67,14 @@ Array.prototype.removes = function(arr) {
     }
 }
 
+Array.prototype.deepRemove = function(obj) {
+    for (let i = 0; i < this.length; i++) {
+        if (deepEqual(this[i], obj)) {
+            this.remove(this[i]);
+        }
+    }
+}
+
 Array.prototype.giveTo = function(des, e) {
     this.remove(e);
     des.push(e);

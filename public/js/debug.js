@@ -61,6 +61,15 @@ function chi(pai, player) {
     }
 }
 
+function kang(pai, player) {
+    let a = {
+        action: 'ankang',
+        player: player,
+        pai: pai
+    };
+    doAction(a);
+}
+
 function setTrigger() {
     //가져올 패가 있는 플레이어의 강
     let river = mj.players[mj.info.turn].river;
@@ -163,14 +172,23 @@ function setTrigger() {
 
         // 안깡
         if (player.state.includes('ankang')) {
-            flag = true;
             $('#pinfo'+i).append('<button id="ankang'+i+'">안깡</button>');
             $('#ankang'+i).click(function() {
-                let a = {
-                    action: 'ankang',
-                    player: i
-                };
-                doAction(a);
+                kangPai = checkAnkang(player.sonPai.concat(player.tsumoPai));
+                // 가능한 경우가 하나면 바로 깡
+                if (kangPai.length == 1) {
+                    let a = {
+                        action: 'ankang',
+                        player: i,
+                        pai: kangPai[0]
+                    };
+                    doAction(a);
+                    return
+                }
+
+                // 아니면 버튼 등록
+                $('#pai'+i+' img').unbind('click');
+                $('#pai'+i+' img').click(function() {kang(parseInt(this.alt), i)});
             });
         }
 
@@ -281,6 +299,21 @@ let checkChi = function (sonPai, pai) {
     }
 
     return chiPais;
+}
+
+let checkAnkang = function(sonPai) {
+    pais = sonPai;
+    kangPais = [];
+    while (pais.length != 0) {
+        let pai = pais.pop();
+        let cnt = 1;
+        while (pais.indexOf(pai) != -1) {
+            pais.splice(pais.indexOf(pai), 1)
+            cnt++;
+        }
+        if (cnt == 4) kangPais.push(pai);
+    }
+    return kangPais;
 }
 
 /**

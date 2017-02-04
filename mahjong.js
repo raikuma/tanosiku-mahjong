@@ -267,7 +267,7 @@ Mahjong.prototype.doAction = function (a) {
                     flag = true;
                 }
 
-                if (checkWin(player, a.pai)) {
+                if (checkWin(info, player, a.pai)) {
                     player.state.push('ron');
                     flag = true;
                 }
@@ -413,13 +413,15 @@ Mahjong.prototype.doAction = function (a) {
          * @param {int} player 안깡 하는 플레이어 넘버
          */
         case 'ankang': {
+            let pai = a.pai;
+
             // 유효성 체크
             if (!state.includes('tsumo')) {
                 console.log('**안깡 가능한 상태 아님**');
                 return false;
             }
-            let pai = checkAnkang(sonPai);
-            if (pai == null) {
+            let kangPais = checkAnkang(sonPai.concat(player.tsumoPai))
+            if (!kangPais.includes(pai)) {
                 console.log('**안깡 불가능**');
                 return false;
             }
@@ -430,6 +432,9 @@ Mahjong.prototype.doAction = function (a) {
                 return false;
             }
 
+            player.state = ['kingtsumo'];
+            sonPai.push(player.tsumoPai);
+
             // 손패에서 제거
             while (sonPai.indexOf(pai) != -1) {
                 sonPai.splice(sonPai.indexOf(pai), 1)
@@ -437,10 +442,10 @@ Mahjong.prototype.doAction = function (a) {
 
             // 운패에 추가
             let hasPais = [pai, pai, pai, pai];
-            cry.push(hasPais);
+            cry.push({pais:hasPais});
 
             // 영상패 쯔모
-            tsumo(paiSan, players[kang.player].sonPai, true, players[kang.player], this.info);
+            tsumo(paiSan, player.sonPai, true, player, this.info);
             // 도라 추가
             tsumo(this.king, this.dora, false);
         }
@@ -580,7 +585,7 @@ let cry = function (player, from, hasPais, wantPai) {
     let cry = {}
     cry.pais = hasPais;
     cry.pais.push(wantPai.pai);
-    cry.from = ''+from;
+    cry.from = from;
     player.cry.push(cry);
 
     // 상태 갱신
@@ -606,9 +611,9 @@ let tsumo = function (from, to, tsumo, player, info) {
 
     // 안깡 체크
     //console.log('checkAnkang');
-    /*if (checkAnkang(player.sonPai.concat(pai))) {
+    if (checkAnkang(player.sonPai.concat(pai)).length != 0) {
         player.state.push('ankang');
-    }*/
+    }
 
     // 쯔모 체크
     if (checkWin(info, player, pai)) {
