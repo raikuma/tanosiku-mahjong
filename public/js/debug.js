@@ -87,6 +87,18 @@ function setTrigger() {
 
         // 캔슬 플래그
         let flag = false;
+        // 쯔모
+        if (player.state.includes('tsumo!')) {
+            $('#pinfo'+i).append('<button id="tsumo'+i+'">쯔모</button>');
+            $('#tsumo'+i).click(function(event) {
+                let a = {
+                    action: 'tsumo',
+                    player: i
+                };
+                doAction(a)
+            });
+        }
+
         // 론
         if (player.state.includes('ron')) {
             flag = true;

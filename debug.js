@@ -22,8 +22,9 @@ module.exports = function (app, _io) {
         socket.on('newgame', function(socket) {
             console.log('new game');
             mj.setGame();
-            mj.players[0].sonPai[0] = 41;
-            mj.players[3].sonPai = [11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 18, 18, 41];
+            //mj.players[0].sonPai[0] = 41;
+            //mj.players[1].sonPai = [11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 41];
+            mj.players[1].sonPai = [11, 11, 11, 12, 13, 14, 15, 16, 17, 18, 19, 19, 19];
             io.emit('mj', makePacket(mj));
         });
     })
