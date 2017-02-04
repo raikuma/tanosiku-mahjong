@@ -1,3 +1,6 @@
+require('./module/util.js');
+require('./module/check');
+
 /**
  * @author RaiKuma
  * @class
@@ -105,7 +108,7 @@ Mahjong.prototype.setGame = function () {
         }
     }
     info.turn = oya;
-    tsumo(paiSan, players[oya].sonPai, true, players[oya]);
+    tsumo(paiSan, players[oya].sonPai, true, players[oya], info);
 
     /* 도라 까기 */
     tsumo(king, dora, false);
@@ -272,7 +275,7 @@ Mahjong.prototype.doAction = function (a) {
             // 없으면 다음 턴으로
             if (!flag) {
                 this.nextTurn();
-                tsumo(paiSan, players[info.turn].sonPai, true, players[info.turn]);
+                tsumo(paiSan, players[info.turn].sonPai, true, players[info.turn], this.info);
             }
             return true;
         }
@@ -437,7 +440,7 @@ Mahjong.prototype.doAction = function (a) {
             cry.push(hasPais);
 
             // 영상패 쯔모
-            tsumo(paiSan, players[kang.player].sonPai, true, players[kang.player]);
+            tsumo(paiSan, players[kang.player].sonPai, true, players[kang.player], this.info);
             // 도라 추가
             tsumo(this.king, this.dora, false);
         }
@@ -480,7 +483,7 @@ Mahjong.prototype.processQueue = function () {
     /* 아무 행동도 없음 다음 차례로 */
     if (queue.length == 0) {
         this.nextTurn();
-        tsumo(paiSan, players[info.turn].sonPai, true, players[info.turn]);
+        tsumo(paiSan, players[info.turn].sonPai, true, players[info.turn], this.info);
         return;
     }
 
@@ -512,7 +515,7 @@ Mahjong.prototype.processQueue = function () {
         info.turn = kang.player;
 
         // 영상패 쯔모
-        tsumo(paiSan, players[kang.player].sonPai, true, players[kang.player]);
+        tsumo(paiSan, players[kang.player].sonPai, true, players[kang.player], this.info);
         // 도라 추가
         tsumo(this.king, this.dora, false);
 
@@ -591,7 +594,7 @@ let cry = function (player, from, hasPais, wantPai) {
  * @param {Bool} tsumo 쯔모 패 여부
  * @param {Player} player [상태 표시 용]
  */
-let tsumo = function (from, to, tsumo, player) {
+let tsumo = function (from, to, tsumo, player, info) {
     let pai = from.pop();
     if (!tsumo) {
         to.push(pai);
@@ -608,7 +611,7 @@ let tsumo = function (from, to, tsumo, player) {
     }*/
 
     // 쯔모 체크
-    if (checkWin(player, pai)) {
+    if (checkWin(info, player, pai)) {
         player.state.push('tsumo!');
     }
 }
@@ -639,468 +642,6 @@ let giri = function (player, pai, tsumo) {
 }
 
 /**
- * 치 가능 여부
- * @param {Array} sonPai 손패
- * @param {Pai} pai 가져올 패
- */
-let checkChi = function (sonPai, pai) {
-    let chiPais = [];
-
-    // 자패면 패스
-    if (parseInt(pai / 10) == 4) {
-        return chiPais;
-    }
-
-    // 1번 케이스
-    if (sonPai.includes(pai - 2) && sonPai.includes(pai - 1)) {
-        chiPais.push([pai - 2, pai - 1]);
-    }
-    // 2번 케이스
-    if (sonPai.includes(pai - 1) && sonPai.includes(pai + 1)) {
-        chiPais.push([pai - 1, pai + 1]);
-    }
-    // 3번 케이스
-    if (sonPai.includes(pai + 1) && sonPai.includes(pai + 2)) {
-        chiPais.push([pai + 1, pai + 2]);
-    }
-
-    return chiPais;
-}
-
-/**
- * 퐁 가능 여부
- * @param {Array} sonPai 손패
- * @param {Pai} pai 가져올 패
- */
-let checkPong = function (sonPai, pai) {
-    let count = 0;
-    sonPai.forEach(function (p) {
-        if (p == pai) count++;
-    });
-    // 2개 이상
-    if (count >= 2) return true;
-
-    return false;
-}
-
-/**
- * 깡 가능 여부
- * @param {Array} sonPai 손패
- * @param {Pai} pai 가져올 패
- */
-let checkKang = function (sonPai, pai) {
-    let count = 0;
-    sonPai.forEach(function (p) {
-        if (p == pai) count++;
-    });
-    // 3개 이상
-    if (count >= 3) return true;
-
-    return false;
-}
-
-let checkAnkang = function(sonPai) {
-    //console.log(sonPai);
-    while (sonPai.length != 0) {
-        let pai = sonPai.pop();
-        let cnt = 1;
-        while (sonPai.indexOf(pai) != -1) {
-            sonPai.splice(sonPai.indexOf(pai), 1)
-            cnt++;
-        }
-        //console.log(cnt);
-        if (cnt == 4) return pai;
-    }
-    return null;
-}
-
-// 화료 가능 여부
-let checkWin = function (player, pai) {
-    let sonPai = player.sonPai;
-
-    console.log(sonPai.concat(pai).sort());
-
-    // 화료 가능 모양인가
-    let dragon = [];
-    checkChunk(sonPai.concat(pai), false, [], dragon);
-    checkChiToi(sonPai.concat(pai), [], dragon);
-    if (dragon.length != 0) console.log(dragon);
-
-    if (dragon.length == 0) {
-        return false;
-    }
-
-    // 족보가 있는가
-    dragon.forEach(function(dragon) {
-        console.log(checkJocbo(player, pai, dragon));
-    });
-
-    return true;
-}
-
-// 3-3-3-2 재귀용
-let checkChunk = function(pais, cantHead, chunk, out) {
-    //console.log(chunk, pais.length);
-
-    if (pais.length == 1) {
-        //console.log('**패 하나 남음**');
-        return;
-    } else if (pais.length == 0) {
-        if (!deepInclude(out, chunk))
-            out.push(chunk);
-        return;
-    }
-
-    let skip = [];
-    let skipChi = [];
-    for (let i = 0; i < pais.length; i++) {
-        let pai = pais[i];
-
-        if (skip.includes(pai)) continue;
-        skip.push(pai);
-
-        let leftPai = deepCopy(pais);
-        let flag = false;
-        leftPai.splice(leftPai.indexOf(pai), 1);
-        // 1번 머리
-        if (!cantHead && leftPai.includes(pai)) {
-            flag = true;
-            let tmp = deepCopy(leftPai);
-            tmp.splice(tmp.indexOf(pai), 1);
-            let tmpChunk = deepCopy(chunk);
-            tmpChunk.push([pai, pai]);
-            //console.log(tmp, '머리', pai, pai)
-            checkChunk(tmp, true, tmpChunk, out);
-        }
-        // 2번 커츠
-        if (checkPong(leftPai, pai)) {
-            flag = true;
-            let tmp = deepCopy(leftPai);
-            tmp.splice(tmp.indexOf(pai), 1);
-            tmp.splice(tmp.indexOf(pai), 1);
-            let tmpChunk = deepCopy(chunk);
-            tmpChunk.push([pai, pai, pai]);
-            //console.log(tmp, '커츠', pai, pai, pai);
-            checkChunk(tmp, cantHead, tmpChunk, out);
-        }
-        // 3번 슌츠
-        let chiPais = checkChi(leftPai, pai);
-        if (chiPais.length != 0) {
-            flag = true;
-            for (let j = 0; j < chiPais.length; j++) {
-                chiPai = chiPais[j];
-                let tmp = deepCopy(leftPai);
-                tmp.splice(tmp.indexOf(chiPai[0]), 1);
-                tmp.splice(tmp.indexOf(chiPai[1]), 1);
-                let chiChunk = [pai,chiPai[0],chiPai[1]];
-                let tmpChunk = deepCopy(chunk);
-                //console.log(skipChi, tmpChunk, chiChunk);
-                tmpChunk.push(chiChunk);
-                if (!deepInclude(skipChi, chiChunk)) {
-                    chiChunk.sort();
-                    skipChi.push(chiChunk);
-                    //console.log(tmp, '슌츠', pai, chiPai);
-                    checkChunk(tmp, cantHead, tmpChunk, out);
-                }
-            }
-        }
-        // 아무 쓸모 없는 패가 있음,
-        if (flag == false) {
-            return;
-        }
-    }
-}
-
-// 칠대자
-let checkChiToi = function(pais, chunk, out) {
-    //console.log(pais.sort());
-
-    if (pais.length == 1) {
-        //console.log('**패 하나 남음**');
-        return;
-    } else if (pais.length == 0) {
-        out.push(chunk);
-        return;
-    }
-
-    let pai = pais.pop();
-    if (pais.includes(pai)) {
-        pais.splice(pais.indexOf(pai), 1);
-        chunk.push([pai, pai]);
-        checkChiToi(pais, chunk, out);
-    }
-
-    return;
-}
-
-// 족보체크
-let checkJocbo = function(player, pai, dragon) {
-    let jocbo = [];
-    let flag;
-
-    // 족보 체크
-    let sonPai = player.sonPai;                 // 손패
-    let pais = sonPai.concat(pai);              // 완성된 패
-    let playerInfo = getPlayerInfo(player);
-    let paiInfo = getPaiInfo(pais);
-    let paiInfo2 = getPaiInfo2(player, dragon, pai);
-
-    //----------------- 역만 체크
-    /* 멘젠 한정 */
-    // 천화
-    // 지화
-    // 사안커
-    // 국사무쌍
-    let gukPai = [11, 19, 21, 29, 31, 39, 41, 42, 43, 44, 45, 46, 47];
-    gukPai.forEach(function(pai) {
-        if (deepEqual(pais, gukPai.concat(pai))) {
-            let j = 'guksa';
-            if (deepEqual(sonPai, gukpai)) {
-                j = '13' + j;
-            }
-            jocbo.push(j);
-        }
-    });
-    // 구련보등
-    // 순정구련보등
-
-    /* 멘젠 비한정 */
-    // 녹일색
-    let nokPai = [32, 33, 34, 36, 38, 46];
-    flag = true;
-    for (let i = 0; i < pais.length; i++) {
-        if (!nokPai.includes(pais[i])) {
-            flag = false;
-            break;
-        }
-    }
-    if (flag) {
-        jocbo.push('nok');
-    }
-    // 자일색
-    if (paiInfo.ja == true) {
-        jocbo.push('ja')
-    }
-    // 대삼원 - 책임지불
-    // 소사희
-    // 대사희 - 책임지불
-    // 사깡즈 - 책임지불
-    // 역만이면 그 이하 역과는 중복이 안된다
-    if (jocbo.length != 0) return jocbo;   
-
-    //----------------- 특수 만관
-    // 인화
-    // 유국만관
-
-    //----------------- 일반 족보
-    /* 멘젠 한정 */
-    if (playerInfo.menjen == true) {
-        //-- 1 --//
-        // 멘젠쯔모
-        if (playerInfo.tsumo == true) {
-            jocbo.push('mjtsumo');
-        }
-        // 리치
-        if (playerInfo.rich == true) {
-            jocbo.push('rich');
-        }
-        // 일발
-        if (playerInfo.ilbal == true) {
-            jocbo.push('ilbal');
-        }
-        // 핑후
-        // 이페코
-
-        //-- 2 --//
-        // 더블리치
-        if (playerInfo.dbrich ==  true) {
-            jocbo.push('dbrich');
-        }
-        // 칠대자
-
-        //-- 3 --//
-        // 량페코
-    }
-
-    /* 멘젠 준한정 */
-    //-- 2 --//
-    // 삼색동순
-    // 일기통관
-    // 찬타
-
-    //-- 3 --//
-    // 준찬타
-    // 혼일색
-    if (paiInfo.hon == true) {
-        jocbo.push('hon');
-    }
-
-    /* 멘젠 비한정 */
-    //-- 1 --//
-    // 삼원패 백 발 중
-    // 자풍패 동 남 서 북
-    // 장풍패 - 현재 국의 바람패
-    // 탕야오
-    // 영상개화
-    if (playerInfo.kingtsumo == true) {
-        jocbo.push('youngsang');
-    }
-    // 챵깡
-    // 해저로월 - 마지막 패로 쯔모
-    // 하저로어 - 마지막 패로 론
-
-    //-- 2 --//
-    // 또이또이
-    // 삼안커
-    // 삼색동각
-    // 소삼원
-    // 혼노두
-    // 삼깡즈
-
-    //-- 6 --//
-    // 청일색
-    if (paiInfo.chung == true) {
-        jocbo.push('chung');
-    }
-
-    return jocbo;
-}
-
-// 플레이어 정보
-let getPlayerInfo = function (player) {
-    let info = {
-        rich: false,        // 리치
-        ilbal: false,        // 일발
-        menjen: true,       // 멘젠
-        tsumo: false,       // 패를 뽑았는가
-        kingtsumo: false,   // 영상패를 뽑았는가
-    }
-
-    player.cry.forEach(function(cry) {
-        // 패를 가져온 흔적이 있으면 울었음
-        if (cry.from) info.memjen = false;
-    });
-    
-    if (player.rich == true) {
-        info.rich = true;
-    }
-
-    if (player.ilbal == true) {
-        info.ilbal = true;
-    }
-
-    if (player.state.includes('tsumo')) {
-        info.tsumo = true;
-        if (player.state.includes('cry')) {
-            info.kingtsumo = true;
-        }
-    }
-
-    return info;
-}
-
-// 패 정보
-let getPaiInfo = function (pais) {
-    let info = {
-        chung: false,   // 청일색
-        ja: false,      // 자일색
-        hon: false,     // 혼일색
-        honnodu: false, // 혼노두
-    }
-
-    // 각각의 패의 수
-    let man = 0;
-    let ton = 0;
-    let sak = 0;
-    let ja = 0;
-    pais.forEach(function(pai) {
-        let t = parseInt(pai/10);
-        if (t == 1) {
-            man++;
-        } else if (t == 2) {
-            ton++;
-        } else if (t == 3) {
-            sak++;
-        } else {
-            ja++;
-        }
-    });
-
-    if (ton + sak + ja == 0 ||
-    man + sak + ja == 0 ||
-    ton + sak + ja == 0) {
-        info.chung = true;
-    } else if (ton + sak == 0 ||
-    man + sak == 0 ||
-    man + ton == 0) {
-        info.hon = true;
-    } else if (man + ton + sak == 0) {
-        info.ja = true;
-    }
-
-    return info;
-}
-
-// 패의 개별 정보를 수집한다.
-let getPaiInfo2 = function (player, sonChunk, pai) {
-    let info = {
-        shun: 0,        // 슌츠의 갯수
-        cut: 0,         // 커츠의 갯수
-        type: [],       // 대기 형태 ('both', 'middle', 'side', 'shabo', 'short')
-    };
-
-    // 슌츠와 커츠의 갯수
-    player.cry.forEach(function(cry) {
-        if (cry.pais[0] == cry.pais[1]) {
-            info.cut++;
-        } else {
-            info.shun++;
-        }
-    });
-    sonChunk.forEach(function(chunk) {
-        if (chunk.length == 3) {
-            if (chunk[0] == chunk[1]) {
-                info.cut++;
-            } else {
-                info.shun++;
-            }
-        }
-    });
-
-    // 대기형태
-    sonChunk.forEach(function(chunk) {
-        if (chunk[0] == pai) {
-            if (chunk[1] == pai) {
-                // 샤보
-                if (chunk.length == 3) {
-                    info.type.push('shabo');
-                // 단기
-                } else {
-                    info.type.push('short');
-                }
-            } else {
-                // 변짱
-                if (chunk[2] % 10 == 9) {
-                    info.type.push('side');
-                }
-            }
-        } else if (chunk[1] == pai) {
-            // 간짱
-            info.type.push('middle');
-        } else if (chunk[2] == pai) {
-            // 변짱
-            if (chunk[0] % 10 == 1) {
-                info.types.push('side');
-            }
-        }
-    });
-
-    // 
-
-    return info;
-}
-
-/**
  * 다른 플레이어가 해당하는 상태를 가지고 있는지 판단
  * @param {Array} players 플레이어 배열
  * @param {Array} states 기다릴 상태
@@ -1111,53 +652,6 @@ let hasToWait = function (players, states) {
             if (players[i].state.includes(states[j])) {
                 return true;
             }
-        }
-    }
-    return false;
-}
-
-function isYogu(pai) {
-    // 자패
-    if (parseInt(pai/10) == 4) {
-        return true;
-    }
-    // 1 9
-    if (pai % 10 == 1 || pai % 10 == 9) {
-        return true;
-    }
-    // 중장패
-    return false;
-}
-
-function deepCopy(src) {
-    let des = src.map(function(e) {
-        return e;
-    });
-    return des;
-}
-
-function deepEqual(arr1, arr2) {
-    if (!Array.isArray(arr1)) {
-        return arr1 == arr2;
-    }
-    if (arr1.length != arr2.length) return false;
-
-    a = deepCopy(arr1);
-    b = deepCopy(arr2);
-    a.sort();
-    b.sort();
-
-    for (let i = 0; i < a.length; i++) {
-        if (!deepEqual(a[i], b[i])) return false;
-    }
-
-    return true;
-}
-
-function deepInclude(arr, obj) {
-    for (let i = 0; i < arr.length; i++) {
-        if (deepEqual(arr[i], obj)) {
-            return true;
         }
     }
     return false;

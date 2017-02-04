@@ -1,0 +1,572 @@
+/** 치가 가능한 패 배열을 리턴
+ * @param {Array} sonPai 손패
+ * @param {Pai} pai 가져올 패
+ * @returns {Array}
+ */
+checkChi = function (sonPai, pai) {
+    let chiPais = [];
+
+    // 자패면 패스
+    if (parseInt(pai / 10) == 4) {
+        return chiPais;
+    }
+    // 1번 케이스
+    if (sonPai.includes(pai - 2) && sonPai.includes(pai - 1)) {
+        chiPais.push([pai - 2, pai - 1]);
+    }
+    // 2번 케이스
+    if (sonPai.includes(pai - 1) && sonPai.includes(pai + 1)) {
+        chiPais.push([pai - 1, pai + 1]);
+    }
+    // 3번 케이스
+    if (sonPai.includes(pai + 1) && sonPai.includes(pai + 2)) {
+        chiPais.push([pai + 1, pai + 2]);
+    }
+
+    return chiPais;
+}
+
+/** 퐁 가능 여부
+ * @param {Array} sonPai 손패
+ * @param {Pai} pai 가져올 패
+ * @returns {Bool}
+ */
+checkPong = function (sonPai, pai) {
+    let count = 0;
+    sonPai.forEach(function (p) {
+        if (p == pai) count++;
+    });
+    // 2개 이상
+    if (count >= 2) return true;
+
+    return false;
+}
+
+/** 깡 가능 여부
+ * @param {Array} sonPai 손패
+ * @param {Pai} pai 가져올 패
+ * @returns {Bool}
+ */
+checkKang = function (sonPai, pai) {
+    let count = 0;
+    sonPai.forEach(function (p) {
+        if (p == pai) count++;
+    });
+    // 3개 이상
+    if (count >= 3) return true;
+
+    return false;
+}
+
+/** 안깡 가능한 패를 리턴
+ * @param {Array} sonPai 손패
+ * @return {Pai}
+ */
+checkAnkang = function(sonPai) {
+    while (sonPai.length != 0) {
+        let pai = sonPai.pop();
+        let cnt = 1;
+        while (sonPai.indexOf(pai) != -1) {
+            sonPai.splice(sonPai.indexOf(pai), 1)
+            cnt++;
+        }
+        if (cnt == 4) return pai;
+    }
+    return 0;
+}
+
+/** 리치 가능 여부
+ * @return {Bool}
+ */
+checkRich = function() {
+    return false;
+}
+
+/** 3-3-3-2 재귀용
+ * @param {Array} pais 검사 패 배열
+ * @param {Bool} cantHead true: 머리검사 안함
+ * @param {Array} chunk 현재까지 모은 형태
+ * @param {Array} out 리턴용
+ */
+checkChunk = function(pais, cantHead, chunk, out) {
+    // 남은 패가 없으면 기록 후 종료
+    if (pais.length == 0) {
+        if (!out.deepInclude(chunk)) {
+            out.push(chunk);
+        }
+        return;
+    }
+
+    let skip = [];      // 이미 검사한 패
+    let skipChi = [];   // 이미 검사한 슌츠
+
+    for (let i = 0; i < pais.length; i++) {
+        if (skip.includes(pais[i])) continue;
+        skip.push(pais[i]);
+
+        let pai = pais[i];
+        let leftPai = pais.deepCopy();
+        let flag = false;
+        leftPai.remove(pai);
+
+        // 1번 머리
+        if (!cantHead && leftPai.includes(pai)) {
+            let lp = leftPai.deepCopy();
+            let pc = chunk.deepCopy();
+            lp.remove(pai);
+            pc.push([pai, pai]);
+            checkChunk(lp, true, pc, out);
+            flag = true;
+        }
+        // 2번 커츠
+        if (checkPong(leftPai, pai)) {
+            let lp = leftPai.deepCopy();
+            let pc = chunk.deepCopy();
+            lp.removes([pai, pai]);
+            pc.push([pai, pai, pai]);
+            checkChunk(lp, cantHead, pc, out);
+            flag = true;
+        }
+        // 3번 슌츠
+        let chiPais = checkChi(leftPai, pai);
+        if (chiPais.length != 0) {
+            for (let j = 0; j < chiPais.length; j++) {
+                let chiPai = chiPais[j];
+                let chiChunk = chiPai.concat(pai);  chiChunk.sort();
+
+                if (skipChi.deepInclude(chiChunk)) continue;
+                skipChi.push(chiChunk);
+
+                let lp = leftPai.deepCopy();
+                let pc = chunk.deepCopy();
+                lp.removes(chiPai);
+                pc.push(chiChunk);
+                checkChunk(lp, cantHead, pc, out);
+            }
+            flag = true;
+        }
+        // 아무 쓸모 없는 패가 있음,
+        if (flag == false) return;
+    }
+}
+
+/** 칠대자
+ * @param {Array} pais 검사 패 배열 (파괴됨)
+ * @param {Array} chunk 현재까지 모은 형태
+ * @param {Array} out 리턴용
+ */
+checkChiToi = function(pais, chunk, out) {
+    // 남은 패가 없으면 기록 후 종료
+    if (pais.length == 0) {
+        out.push(chunk);
+        return;
+    }
+
+    let pai = pais.pop();
+    if (pais.includes(pai)) {
+        pais.remove(pai);
+        chunk.push([pai, pai]);
+        checkChiToi(pais, chunk, out);
+    }
+
+    return;
+}
+
+/** 국사무쌍
+ * @param {Array} pais
+ * @param {Array} out 리턴용
+ */
+checkGuksa = function(pais, out) {
+    let gukPai = [11, 19, 21, 29, 31, 39, 41, 42, 43, 44, 45, 46, 47];
+    gukPai.forEach(function(pai) {
+        if (deepEqual(pais, gukPai.concat(pai))) {
+            out.push(pais);
+            return
+        }
+    });
+}
+
+/** 족보체크
+ */
+checkJocbo = function(info, player, pai, dragon) {
+    let jocbo = [];
+    let flag;       // 다목적 플래그
+    let pai;        // 다목적 패
+
+    let sonPai = player.sonPai;                 // 손패
+    let pais = sonPai.concat(pai);              // 완성된 손패
+    let chunk = dragon.deepCopy();              // 완성된 모양
+    player.cry.forEach(function(cry) {
+        pais = pais.concat(cry.pais);
+        chunk.push(cry.pais);
+    });
+
+    let playerInfo = getPlayerInfo(player);
+    let paiInfo = getPaiInfo(pais);
+    let paiInfo2 = getPaiInfo2(player, dragon, pai);
+
+    //----------------- 역만 체크
+    /* 멘젠 한정 */
+    if (playerInfo.menjen) {
+        // 천화
+        // 지화
+        // 사안커
+        // 국사무쌍
+        let gukPai = [11, 19, 21, 29, 31, 39, 41, 42, 43, 44, 45, 46, 47];
+        gukPai.forEach(function(pai) {
+            if (deepEqual(pais, gukPai.concat(pai))) {
+                let j = 'guksa';
+                // 13면
+                if (deepEqual(sonPai, gukPai)) {
+                    j = '13' + j;
+                }
+                jocbo.push(j);
+            }
+        });
+        // 구련보등
+        let guPai = [11, 11, 11, 12, 13, 14, 15, 16, 17, 18, 19, 19, 19];
+        guPai.forEach(function(pai) {
+            if (deepEqual(pais, guPai.concat(pai))) {
+                let j = 'guryun';
+                if (deepEqual(sonPai, guPai)) {
+                    j = 'sun' + j;
+                }
+                jocbo.push(j);
+            }
+        });
+    }
+    /* 멘젠 비한정 */
+    // 녹일색
+    let nokPai = [32, 33, 34, 36, 38, 46];
+    flag = true;
+    for (let i = 0; i < pais.length; i++) {
+        if (!nokPai.includes(pais[i])) {
+            flag = false;
+            break;
+        }
+    }
+    if (flag) jocbo.push('nok');
+    // 자일색
+    if (paiInfo.jail == true) {
+        jocbo.push('ja')
+    }
+    // 대삼원 - 책임지불
+    if (
+        (chunk.deepInclude([45, 45, 45]) || chunk.deepInclude([45, 45, 45, 45])) &&
+        (chunk.deepInclude([46, 46, 46]) || chunk.deepInclude([46, 46, 46, 46])) &&
+        (chunk.deepInclude([47, 47, 47]) || chunk.deepInclude([47, 47, 47, 47]))
+    ) {
+        jocbo.push('deasam');
+    }
+    // 소사희, 대사희
+    flag = false;
+    let soPai = [41, 42, 43, 44];
+    for (let i = 0; i < soPai.length; i++) {
+        let pai = soPai[i];
+        let left = soPai.deepCopy();
+        left.remove(pai);
+
+        if (
+            (chunk.deepInclude([left[0], left[0], left[0]]) || chunk.deepInclude([left[0], left[0], left[0], left[0]])) &&
+            (chunk.deepInclude([left[1], left[1], left[1]]) || chunk.deepInclude([left[1], left[1], left[1], left[1]])) &&
+            (chunk.deepInclude([left[2], left[2], left[2]]) || chunk.deepInclude([left[2], left[2], left[2], left[2]]))
+        ) {
+            // 소사희
+            if (chunk.deepInclude([pai, pai])) {
+                jocbo.push('sosa');
+                break;
+            // 대사희
+            } else if (chunk.deepInclude([pai, pai]) || chunk.deepInclude([pai, pai, pai])) {
+                jocbo.push('deasa');
+                break;
+            }
+        }
+    }
+    // 사깡즈 - 책임지불
+    // 역만이면 그 이하 역과는 중복이 안된다
+    if (jocbo.length != 0) return jocbo;   
+
+    //----------------- 특수 만관
+    // 인화
+    // 유국만관
+
+    //----------------- 일반 족보
+    /* 멘젠 한정 */
+    if (playerInfo.menjen == true) {
+        //-- 1 --//
+        // 멘젠쯔모
+        if (playerInfo.tsumo == true) {
+            jocbo.push('mjtsumo');
+        }
+        // 리치
+        if (playerInfo.rich == true) {
+            jocbo.push('rich');
+        }
+        // 일발
+        if (playerInfo.ilbal == true) {
+            jocbo.push('ilbal');
+        }
+        // 핑후
+        // 이페코
+
+        //-- 2 --//
+        // 더블리치
+        if (playerInfo.dbrich ==  true) {
+            jocbo.push('dbrich');
+        }
+        // 칠대자
+
+        //-- 3 --//
+        // 량페코
+    }
+
+    /* 멘젠 준한정 */
+    //-- 2 --//
+    // 삼색동순
+    // 일기통관
+    // 찬타
+
+    //-- 3 --//
+    // 준찬타
+    // 혼일색
+    if (paiInfo.honil == true) {
+        jocbo.push('hon');
+    }
+
+    /* 멘젠 비한정 */
+    //-- 1 --//
+    // 삼원패 백 발 중
+    if (chunk.deepInclude([45, 45, 45]) || chunk.deepInclude([45, 45, 45, 45])) {
+        jocbo.push('bal');
+    }
+    if (chunk.deepInclude([46, 46, 46]) || chunk.deepInclude([46, 46, 46, 46])) {
+        jocbo.push('chu');
+    }
+    if (chunk.deepInclude([47, 47, 47]) || chunk.deepInclude([47, 47, 47, 47])) {
+        jocbo.push('bak');
+    }
+    // 자풍패 동 남 서 북
+    pai = 41 + player.ga;
+    if (chunk.deepInclude([pai, pai, pai]) || chunk.deepInclude([pai, pai, pai, pai])) {
+        jocbo.push('japung')
+    }
+    // 장풍패 - 현재 국의 바람패
+    pai = 41 + (info.guk % 4);
+    if (chunk.deepInclude([pai, pai, pai]) || chunk.deepInclude([pai, pai, pai, pai])) {
+        jocbo.push('jangpung')
+    }
+    // 연풍패
+    if (jocbo.includes('japung') && jocbo.includes('jangpung')) {
+        jocbo.removes('japung', 'jangpung');
+        jocbo.push('yunpung');
+    }
+    // 탕야오
+    flag = true;
+    for (let i = 0; i < pais.length; i++) {
+        if (isYogu(pais[i])) {
+            flag = false;
+            break;
+        }
+    }
+    if (flag) {
+        jocbo.push('tang');
+    }
+    // 영상개화
+    if (playerInfo.kingtsumo == true) {
+        jocbo.push('youngsang');
+    }
+    // 챵깡
+    // 해저로월 - 마지막 패로 쯔모
+    // 하저로어 - 마지막 패로 론
+
+    //-- 2 --//
+    // 또이또이
+    // 삼안커
+    // 삼색동각
+    // 소삼원
+    // 혼노두
+    // 삼깡즈
+
+    //-- 6 --//
+    // 청일색
+    if (paiInfo.chungil == true) {
+        jocbo.push('chung');
+    }
+
+    return jocbo;
+}
+
+// 화료 가능 여부
+checkWin = function (info, player, pai) {
+    let sonPai = player.sonPai;
+
+    // 화료 가능 모양인가
+    let dragon = [];
+    checkChunk(sonPai.concat(pai), false, [], dragon);
+    checkChiToi(sonPai.concat(pai), [], dragon);
+    checkGuksa(sonPai.concat(pai), dragon);
+    if (dragon.length != 0) console.log(dragon);
+
+    if (dragon.length == 0) {
+        return false;
+    }
+
+    // 족보가 있는가
+    let jocbo = [];
+    dragon.forEach(function(dragon) {
+        jocbo = checkJocbo(info, player, pai, dragon);
+    });
+    if (jocbo.length != 0) {
+        console.log(jocbo);
+        return true;
+    }
+
+    return false;
+}
+
+// 플레이어 정보
+getPlayerInfo = function (player) {
+    let info = {
+        rich: false,        // 리치
+        ilbal: false,        // 일발
+        menjen: true,       // 멘젠
+        tsumo: false,       // 패를 뽑았는가
+        kingtsumo: false,   // 영상패를 뽑았는가
+    }
+
+    player.cry.forEach(function(cry) {
+        // 패를 가져온 흔적이 있으면 울었음
+        if (cry.from) info.memjen = false;
+    });
+    
+    if (player.rich == true) {
+        info.rich = true;
+    }
+
+    if (player.ilbal == true) {
+        info.ilbal = true;
+    }
+
+    if (player.state.includes('tsumo')) {
+        info.tsumo = true;
+        if (player.state.includes('cry')) {
+            info.kingtsumo = true;
+        }
+    }
+
+    return info;
+}
+
+// 패 정보
+getPaiInfo = function (pais) {
+    let info = {
+        chungil: false,   // 청일색
+        jail: false,      // 자일색
+        honil: false,     // 혼일색
+        honnodu: false, // 혼노두
+    }
+
+    // 각각의 패의 수
+    let man = 0;
+    let ton = 0;
+    let sak = 0;
+    let ja = 0;
+    pais.forEach(function(pai) {
+        let t = parseInt(pai/10);
+        if (t == 1) {
+            man++;
+        } else if (t == 2) {
+            ton++;
+        } else if (t == 3) {
+            sak++;
+        } else {
+            ja++;
+        }
+    });
+
+    if (man + ton + sak == 0) {
+        info.ja = true;
+    } else if (ton + sak + ja == 0 ||
+    man + sak + ja == 0 ||
+    ton + sak + ja == 0) {
+        info.chungil = true;
+    } else if (ton + sak == 0 ||
+    man + sak == 0 ||
+    man + ton == 0) {
+        info.honil = true;
+    }
+
+    return info;
+}
+
+// 패의 개별 정보를 수집한다.
+let getPaiInfo2 = function (player, sonChunk, pai) {
+    let info = {
+        shun: 0,        // 슌츠의 갯수
+        cut: 0,         // 커츠의 갯수
+        type: [],       // 대기 형태 ('both', 'middle', 'side', 'shabo', 'short')
+    };
+
+    // 슌츠와 커츠의 갯수
+    player.cry.forEach(function(cry) {
+        if (cry.pais[0] == cry.pais[1]) {
+            info.cut++;
+        } else {
+            info.shun++;
+        }
+    });
+    sonChunk.forEach(function(chunk) {
+        if (chunk.length == 3) {
+            if (chunk[0] == chunk[1]) {
+                info.cut++;
+            } else {
+                info.shun++;
+            }
+        }
+    });
+
+    // 대기형태
+    sonChunk.forEach(function(chunk) {
+        if (chunk[0] == pai) {
+            if (chunk[1] == pai) {
+                // 샤보
+                if (chunk.length == 3) {
+                    info.type.push('shabo');
+                // 단기
+                } else {
+                    info.type.push('short');
+                }
+            } else {
+                // 변짱
+                if (chunk[2] % 10 == 9) {
+                    info.type.push('side');
+                }
+            }
+        } else if (chunk[1] == pai) {
+            // 간짱
+            info.type.push('middle');
+        } else if (chunk[2] == pai) {
+            // 변짱
+            if (chunk[0] % 10 == 1) {
+                info.type.push('side');
+            }
+        }
+    });
+
+    // 
+
+    return info;
+}
+
+isYogu = function(pai) {
+    // 자패
+    if (parseInt(pai/10) == 4) {
+        return true;
+    }
+    // 1 9
+    if (pai % 10 == 1 || pai % 10 == 9) {
+        return true;
+    }
+    // 중장패
+    return false;
+}
