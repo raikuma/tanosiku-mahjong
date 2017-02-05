@@ -76,13 +76,6 @@ checkAnkang = function(pais) {
     return kangPais;
 }
 
-/** 리치 가능 여부
- * @return {Bool}
- */
-checkRich = function() {
-    return false;
-}
-
 /** 3-3-3-2 재귀용
  * @param {Array} pais 검사 패 배열
  * @param {Bool} cantHead true: 머리검사 안함
@@ -207,7 +200,6 @@ checkJocbo = function(info, player, pai, dragon) {
 
     let playerInfo = getPlayerInfo(player);
     let paiColor = getPaiColor(pais);
-    let paiInfo = getPaiInfo(pais);
     let paiInfo2 = getPaiInfo2(player, dragon, pai);
 
     //----------------- 역만 체크
@@ -252,7 +244,6 @@ checkJocbo = function(info, player, pai, dragon) {
     }
     if (flag) jocbo.push('nok');
     // 자일색
-    //if (paiInfo.jail == true) {
     if (paiColor == 'ja') {
         jocbo.push('ja')
     }
@@ -301,11 +292,12 @@ checkJocbo = function(info, player, pai, dragon) {
     if (playerInfo.menjen == true) {
         //-- 1 --//
         // 멘젠쯔모
-        if (playerInfo.tsumo == true) {
+        if (player.state.includes('tsumo')) {
             jocbo.push('mjtsumo');
         }
         // 리치
-        if (playerInfo.rich == true) {
+        //if (playerInfo.rich == true) {
+        if (player.rich == true) {
             jocbo.push('rich');
         }
         // 일발
@@ -338,7 +330,7 @@ checkJocbo = function(info, player, pai, dragon) {
         }
         // 칠대자
         let chitoi = [];
-        checkChiToi(pais, [], chitoi);
+        checkChiToi(pais.deepCopy(), [], chitoi);
         if (chitoi.length != 0) {
             jocbo.push('chitoi');
         }
@@ -459,7 +451,7 @@ checkJocbo = function(info, player, pai, dragon) {
         jocbo.push('tang');
     }
     // 영상개화
-    if (playerInfo.kingtsumo == true) {
+    if (player.state.includes('kingtsumo')) {
         jocbo.push('youngsang');
     }
     // 챵깡
@@ -534,6 +526,10 @@ checkJocbo = function(info, player, pai, dragon) {
         jocbo.push('chung');
     }
 
+    if (jocbo.length != 0) {
+        console.log(chunk, jocbo);
+    }
+
     return jocbo;
 }
 
@@ -547,7 +543,7 @@ checkWin = function (info, player, pai) {
     checkChunk(sonPai.concat(pai), false, [], dragon);
     if (playerInfo.menjen) checkChiToi(sonPai.concat(pai), [], dragon);
     checkGuksa(sonPai.concat(pai), dragon);
-    if (dragon.length != 0) console.log(dragon);
+    //if (dragon.length != 0) console.log(dragon);
 
     if (dragon.length == 0) {
         return false;
@@ -559,7 +555,7 @@ checkWin = function (info, player, pai) {
         jocbo = checkJocbo(info, player, pai, dragon);
     });
     if (jocbo.length != 0) {
-        console.log(jocbo);
+        //console.log(jocbo);
         return true;
     }
 
@@ -572,13 +568,11 @@ getPlayerInfo = function (player) {
         rich: false,        // 리치
         ilbal: false,       // 일발
         menjen: true,       // 멘젠
-        tsumo: false,       // 패를 뽑았는가
-        kingtsumo: false,   // 영상패를 뽑았는가
     }
 
     player.cry.forEach(function(cry) {
         // 패를 가져온 흔적이 있으면 울었음
-        console.log(cry);
+        //console.log(cry);
         if (cry.from != undefined) info.menjen = false;
     });
     
@@ -588,13 +582,6 @@ getPlayerInfo = function (player) {
 
     if (player.ilbal == true) {
         info.ilbal = true;
-    }
-
-    if (player.state.includes('tsumo')) {
-        info.tsumo = true;
-        if (player.state.includes('cry')) {
-            info.kingtsumo = true;
-        }
     }
 
     return info;
@@ -633,46 +620,6 @@ getPaiColor = function (pais) {
     }
 
     return '';
-}
-
-getPaiInfo = function (pais) {
-    let info = {
-        chungil: false,   // 청일색
-        jail: false,      // 자일색
-        honil: false,     // 혼일색
-    }
-
-    // 각각의 패의 수
-    let man = 0;
-    let ton = 0;
-    let sak = 0;
-    let ja = 0;
-    pais.forEach(function(pai) {
-        let t = parseInt(pai/10);
-        if (t == 1) {
-            man++;
-        } else if (t == 2) {
-            ton++;
-        } else if (t == 3) {
-            sak++;
-        } else {
-            ja++;
-        }
-    });
-
-    if (man + ton + sak == 0) {
-        info.ja = true;
-    } else if (ton + sak + ja == 0 ||
-    man + sak + ja == 0 ||
-    ton + sak + ja == 0) {
-        info.chungil = true;
-    } else if (ton + sak == 0 ||
-    man + sak == 0 ||
-    man + ton == 0) {
-        info.honil = true;
-    }
-
-    return info;
 }
 
 // 패의 개별 정보를 수집한다.
@@ -751,5 +698,24 @@ isNodu = function(pai) {
         return true;
     }
     // 자패, 중장패
+    return false;
+}
+
+isClose = function(pai1, pai2) {
+    // 둘이 같으면 커츠
+    if (pai1 == pai2) {
+        return true;
+    }
+    // 둘이 가까이 있으면 슌츠
+    if (parseInt(pai1/10) == 4 ||
+    parseInt(pai2/10) == 4 ||
+    parseInt(pai1/10) != parseInt(pai2/10)) {
+        return false;
+    }
+    // 차를 보고 대기패를 안다
+    let dif = Math.abs(parseInt(pai1%10) - parseInt(pai2%10));
+    if (dif == 2 || dif == 1) {
+        return true;
+    }
     return false;
 }

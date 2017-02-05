@@ -121,6 +121,27 @@ function setTrigger() {
             });
         }
 
+        // 리치
+        if (player.state.includes('rich')) {
+            $('#pinfo'+i).append('<button id="rich'+i+'">리치</button>');
+            $('#rich'+i).click(function() {
+                // 아니면 버튼 등록
+                $('#pai'+i+' img').unbind('click');
+                $('#pai'+i+' img').click(function() {
+                    let a = {
+                        action: 'giri',
+                        player: i,
+                        pai: parseInt(this.alt),
+                        rich: true
+                    };
+                    if ((' '+this.className+' ').indexOf(' tsumo ') != -1) {
+                        a.tsumo = true;
+                    }
+                    doAction(a);
+                });
+            });
+        }
+
         // 치
         if (player.state.includes('chi')) {
             flag = true;
@@ -261,12 +282,11 @@ function refreshInfo() {
         html = '<span>버림패: </span>';
         player.river.forEach(function (expai) {
             if (!expai.take) {
-                if (expai.rich) {
-
+                if (expai.rich == true) {
+                    html += IMG(expai.pai, 'rotate1');
                 } else {
-
+                    html += IMG(expai.pai);
                 }
-                html += IMG(expai.pai);
             }
         })
         $('#river' + i).html(html);

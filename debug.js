@@ -26,7 +26,7 @@ module.exports = function (app, _io) {
             // mj.players[1].sonPai = [11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 41];  // 
             // mj.players[1].sonPai = [11, 11, 11, 12, 13, 14, 15, 16, 17, 18, 19, 19, 19];  // 구련보등
             // mj.players[1].sonPai = [11, 19, 21, 29, 31, 39, 41, 42, 43, 44, 45, 46, 47];  // 국사무쌍
-             mj.players[1].sonPai = [32, 32, 32, 32, 33, 34, 36, 36, 36, 47, 38, 38, 38];  // 녹일색
+            mj.players[1].sonPai = [32, 32, 32, 32, 33, 34, 36, 36, 36, 47, 38, 38, 38];  // 녹일색
             // mj.players[1].sonPai = [41, 41, 41, 42, 42, 42, 43, 43, 43, 44, 44, 45, 45];  // 자일색
             // mj.players[1].sonPai = [45, 45, 45, 46, 46, 46, 47, 47, 47, 41, 41, 41, 42];  // 대삼원
             // mj.players[1].sonPai = [41, 41, 41, 42, 42, 42, 43, 43, 43, 44, 44, 45, 45];  // 소사희
@@ -35,7 +35,8 @@ module.exports = function (app, _io) {
             // mj.players[1].sonPai = [42, 42, 42, 42, 41, 41, 31, 31, 32, 32, 32, 33, 33];  // 자풍, 장풍
             // mj.players[1].sonPai = [12, 12, 32, 32, 41, 41, 22, 22, 13, 13, 45, 45, 46];  // 칠대자
 
-            mj.paiSan[mj.paiSan.length-1] = 47;
+            mj.paiSan[mj.paiSan.length-1] = 38;
+            mj.paiSan[mj.paiSan.length-2] = 47;
             
             io.emit('mj', makePacket(mj));
         });

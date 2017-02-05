@@ -79,3 +79,14 @@ Array.prototype.giveTo = function(des, e) {
     this.remove(e);
     des.push(e);
 }
+
+Array.prototype.singlePush = function(e) {
+    if (!this.deepInclude(e)) {
+        this.push(e);
+    }
+}
+
+Array.prototype.popPush = function(des) {
+    let e = this.pop();
+    des.push(e);
+}
