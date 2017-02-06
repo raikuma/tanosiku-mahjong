@@ -17,49 +17,13 @@ cry = function (player, from, hasPais, wantPai) {
 
     // 운패에 추가
     let cry = {}
-    cry.pais = hasPais;
-    cry.pais.push(wantPai.pai);
+    cry.pais = hasPais.concat(wantPai.pai);
     cry.from = from;
     player.cry.push(cry);
 
     // 상태 갱신
     player.state.push('cry');
-}
-
-/** 패 받기
- * @param {Array} src Source
- * @param {Array} des Destination
- * @param {Bool} tsumo 쯔모 패 여부
- * @param {Player} player [상태 표시 용]
- */
-tsumo = function (src, des, tsumo, player, info) {
-    if (src.length == 0) {
-        return;
-    }
-
-    let pai = src.pop();
-
-    player.tsumoPai = pai;
-    player.state.push('tsumo');
-
-    // 안깡 체크
-    if (checkAnkang(player.sonPai.concat(pai)).length != 0) {
-        player.state.push('ankang');
-    }
-
-    // 리치 체크
-    //console.log(getPlayerInfo(player).menjen);
-    if (getPlayerInfo(player).menjen && !player.rich) {
-        let richPai = checkRich(player);
-        if (richPai.length != 0) {
-            player.state.push('rich');
-        }
-    }
-
-    // 쯔모 체크
-    if (checkWin(info, player, pai)) {
-        player.state.push('tsumo!');
-    }
+    player.menjen = false;
 }
 
 /** 패 버리기
@@ -68,9 +32,7 @@ tsumo = function (src, des, tsumo, player, info) {
  * @param {Bool} tsumo 쯔모패인지 여부
  */
 giri = function (player, pai, tsumo, rich) {
-    let expai = {
-        pai: pai,
-    }
+    let expai = { pai: pai }
 
     if (rich) expai.rich = true;
 
@@ -79,6 +41,7 @@ giri = function (player, pai, tsumo, rich) {
     } else {
         let sonPai = player.sonPai;
         sonPai.remove(pai);
+        // 울었을 경우 쯔모패가 없으므로
         if (player.tsumoPai != null) {
             sonPai.push(player.tsumoPai);
         }

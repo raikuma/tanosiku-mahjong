@@ -62,7 +62,7 @@ checkKang = function (sonPai, pai) {
  * @param {Array} sonPai 손패
  * @return {Pai}
  */
-checkAnkang = function(pais) {
+checkAnkang = function (pais) {
     kangPais = [];
     while (pais.length != 0) {
         let pai = pais.pop();
@@ -82,7 +82,7 @@ checkAnkang = function(pais) {
  * @param {Array} chunk 현재까지 모은 형태
  * @param {Array} out 리턴용
  */
-checkChunk = function(pais, cantHead, chunk, out) {
+checkChunk = function (pais, cantHead, chunk, out) {
     // 남은 패가 없으면 기록 후 종료
     if (pais.length == 0) {
         if (!out.deepInclude(chunk)) {
@@ -126,7 +126,7 @@ checkChunk = function(pais, cantHead, chunk, out) {
         if (chiPais.length != 0) {
             for (let j = 0; j < chiPais.length; j++) {
                 let chiPai = chiPais[j];
-                let chiChunk = chiPai.concat(pai);  chiChunk.sort();
+                let chiChunk = chiPai.concat(pai); chiChunk.sort();
 
                 if (skipChi.deepInclude(chiChunk)) continue;
                 skipChi.push(chiChunk);
@@ -149,7 +149,7 @@ checkChunk = function(pais, cantHead, chunk, out) {
  * @param {Array} chunk 현재까지 모은 형태
  * @param {Array} out 리턴용
  */
-checkChiToi = function(pais, chunk, out) {
+checkChiToi = function (pais, chunk, out) {
     // 남은 패가 없으면 기록 후 종료
     if (pais.length == 0) {
         out.push(chunk);
@@ -174,9 +174,9 @@ checkChiToi = function(pais, chunk, out) {
  * @param {Array} pais
  * @param {Array} out 리턴용
  */
-checkGuksa = function(pais, out) {
+checkGuksa = function (pais, out) {
     let gukPai = [11, 19, 21, 29, 31, 39, 41, 42, 43, 44, 45, 46, 47];
-    gukPai.forEach(function(pai) {
+    gukPai.forEach(function (pai) {
         if (deepEqual(pais, gukPai.concat(pai))) {
             out.push(pais);
             return
@@ -184,33 +184,47 @@ checkGuksa = function(pais, out) {
     });
 }
 
-/** 족보체크
- */
-checkJocbo = function(info, player, pai, dragon) {
+/** 족보체크 */
+checkJocbo = function (info, player, pai, dragon) {
     let jocbo = [];
     let flag;       // 다목적 플래그
 
     let sonPai = player.sonPai;                 // 손패
     let pais = sonPai.concat(pai);              // 완성된 손패
     let chunk = dragon.deepCopy();              // 완성된 모양
-    player.cry.forEach(function(cry) {
+    player.cry.forEach(function (cry) {
         pais = pais.concat(cry.pais);
         chunk.push(cry.pais);
     });
 
-    let playerInfo = getPlayerInfo(player);
     let paiColor = getPaiColor(pais);
-    let paiInfo2 = getPaiInfo2(player, dragon, pai);
+    let paiInfo = getPaiInfo(chunk, pai);
 
     //----------------- 역만 체크
     /* 멘젠 한정 */
-    if (playerInfo.menjen) {
-        // 천화
-        // 지화
+    if (player.menjen) {
+        // 천화, 지화
+        if (info.lastPai == 69 &&
+            player.state.includes('tsumo') &&
+            player.first == true) {
+            // 천화
+            jocbo.push('chunhwa');
+
+        } else if (player.state.includes('tsumo') &&
+            player.first == true) {
+            // 지화
+            jocbo.push('jihwa');
+        }
         // 사안커
+        if (paiInfo.cut == 4) {
+            if (player.state.includes('tsumo') ||
+                paiInfo.type.includes('short')) {
+                jocbo.push('sanan');
+            }
+        }
         // 국사무쌍
         let gukPai = [11, 19, 21, 29, 31, 39, 41, 42, 43, 44, 45, 46, 47];
-        gukPai.forEach(function(pai) {
+        gukPai.forEach(function (pai) {
             if (deepEqual(pais, gukPai.concat(pai))) {
                 let j = 'guksa';
                 // 13면
@@ -222,7 +236,7 @@ checkJocbo = function(info, player, pai, dragon) {
         });
         // 구련보등
         let guPai = [11, 11, 11, 12, 13, 14, 15, 16, 17, 18, 19, 19, 19];
-        guPai.forEach(function(pai) {
+        guPai.forEach(function (pai) {
             if (deepEqual(pais, guPai.concat(pai))) {
                 let j = 'guryun';
                 if (deepEqual(sonPai, guPai)) {
@@ -272,7 +286,7 @@ checkJocbo = function(info, player, pai, dragon) {
             if (chunk.deepInclude([pai, pai])) {
                 jocbo.push('sosa');
                 break;
-            // 대사희
+                // 대사희
             } else if (chunk.deepInclude([pai, pai]) || chunk.deepInclude([pai, pai, pai])) {
                 jocbo.push('deasa');
                 break;
@@ -281,7 +295,11 @@ checkJocbo = function(info, player, pai, dragon) {
     }
     // 사깡즈 - 책임지불
     // 역만이면 그 이하 역과는 중복이 안된다
-    if (jocbo.length != 0) return jocbo;   
+    if (jocbo.length != 0) {
+        console.log('chunk: ', chunk);
+        console.log('jocbo: ', jocbo);
+        return jocbo;
+    }
 
     //----------------- 특수 만관
     // 인화
@@ -289,22 +307,35 @@ checkJocbo = function(info, player, pai, dragon) {
 
     //----------------- 일반 족보
     /* 멘젠 한정 */
-    if (playerInfo.menjen == true) {
+    if (player.menjen == true) {
         //-- 1 --//
         // 멘젠쯔모
         if (player.state.includes('tsumo')) {
             jocbo.push('mjtsumo');
         }
         // 리치
-        //if (playerInfo.rich == true) {
         if (player.rich == true) {
             jocbo.push('rich');
         }
         // 일발
-        if (playerInfo.ilbal == true) {
+        if (player.ilbal == true) {
             jocbo.push('ilbal');
         }
         // 핑후
+        flag = true;
+        let head = 0;
+        let cant = [player.ga, parseInt(info.guk / 4), 45, 46, 47];
+        chunk.forEach(function (c) {
+            if (c.length == 2) {
+                head = c[0];
+            }
+        });
+        if (paiInfo.shun == 4 &&
+            paiInfo.type.includes('both') &&
+            !cant.includes(head)
+        ) {
+            jobco.push('pinghu');
+        }
         // 이페코
         let tc = chunk.deepCopy();
         let cnt = 0;
@@ -325,7 +356,7 @@ checkJocbo = function(info, player, pai, dragon) {
 
         //-- 2 --//
         // 더블리치
-        if (playerInfo.dbrich ==  true) {
+        if (player.dbrich == true) {
             jocbo.push('dbrich');
         }
         // 칠대자
@@ -342,7 +373,7 @@ checkJocbo = function(info, player, pai, dragon) {
     for (let i = 1; i <= 7; i++) {
         let flag = true;
         for (let j = 1; j <= 3; j++) {
-            let pais = [j*10 + i, j*10 + i + 1, j*10 + i + 2];
+            let pais = [j * 10 + i, j * 10 + i + 1, j * 10 + i + 2];
             if (!chunk.deepInclude(pais)) {
                 flag = false;
                 break;
@@ -357,7 +388,7 @@ checkJocbo = function(info, player, pai, dragon) {
     for (let i = 1; i <= 3; i++) {
         let flag = true;
         for (let j = 0; j < 3; j++) {
-            let pais = [i*10 + j*3 + 1, i*10 + j*3 + 2, i*10 + j*3 + 3];
+            let pais = [i * 10 + j * 3 + 1, i * 10 + j * 3 + 2, i * 10 + j * 3 + 3];
             if (!chunk.deepInclude(pais)) {
                 flag = false;
                 break;
@@ -404,7 +435,7 @@ checkJocbo = function(info, player, pai, dragon) {
         }
     }
     if (flag == true) {
-        jocbo.push('chanta');
+        jocbo.push('jchanta');
     }
     // 혼일색
     if (paiColor == 'hon') {
@@ -424,18 +455,22 @@ checkJocbo = function(info, player, pai, dragon) {
         jocbo.push('chu');
     }
     // 자풍패 동 남 서 북
-    {let pai = 41 + player.ga;
-    if (chunk.deepInclude([pai, pai, pai]) || chunk.deepInclude([pai, pai, pai, pai])) {
-        jocbo.push('japung')
-    }}
+    {
+        let pai = 41 + player.ga;
+        if (chunk.deepInclude([pai, pai, pai]) || chunk.deepInclude([pai, pai, pai, pai])) {
+            jocbo.push('japung')
+        }
+    }
     // 장풍패 - 현재 국의 바람패
-    {let pai = 41 + (info.guk % 4);
-    if (chunk.deepInclude([pai, pai, pai]) || chunk.deepInclude([pai, pai, pai, pai])) {
-        jocbo.push('jangpung')
-    }}
+    {
+        let pai = 41 + (info.guk % 4);
+        if (chunk.deepInclude([pai, pai, pai]) || chunk.deepInclude([pai, pai, pai, pai])) {
+            jocbo.push('jangpung')
+        }
+    }
     // 연풍패
     if (jocbo.includes('japung') && jocbo.includes('jangpung') &&
-    player.ga == (info.guk % 4)) {
+        player.ga == (info.guk % 4)) {
         jocbo.removes('japung', 'jangpung');
         jocbo.push('yunpung');
     }
@@ -455,22 +490,33 @@ checkJocbo = function(info, player, pai, dragon) {
         jocbo.push('youngsang');
     }
     // 챵깡
-    // 해저로월 - 마지막 패로 쯔모
-    // 하저로어 - 마지막 패로 론
+    if (info.lastPai == 0) {
+        if (player.state.includes('tsumo')) {
+            // 해저로월 - 마지막 패로 쯔모
+            jocbo.push('rowall');
+        } else {
+            // 하저로어 - 마지막 패로 론
+            jocbo.push('rower');
+        }
+    }
 
     //-- 2 --//
     // 또이또이
-    if (paiInfo2.cut == 4) {
+    if (paiInfo.cut == 4) {
         jocbo.push('toitoi');
     }
     // 삼안커
+    let sanInfo = getPaiInfo(dragon);
+    if (sanInfo.cut == 3) {
+        
+    }
     // 삼색동각
     for (let i = 1; i <= 9; i++) {
         flag = true;
         for (let j = 1; j <= 3; j++) {
-            let pais = [j*10 + i, j*10 + i, j*10 + i];
-            let pais2 = [j*10 + i, j*10 + i, j*10 + i, j*10 + i];
-            if ( !(chunk.deepInclude(pais) || chunk.deepInclude(pais2)) ) {
+            let pais = [j * 10 + i, j * 10 + i, j * 10 + i];
+            let pais2 = [j * 10 + i, j * 10 + i, j * 10 + i, j * 10 + i];
+            if (!(chunk.deepInclude(pais) || chunk.deepInclude(pais2))) {
                 flag = false;
                 break;
             }
@@ -493,7 +539,7 @@ checkJocbo = function(info, player, pai, dragon) {
             (chunk.deepInclude([left[2], left[2], left[2]]) || chunk.deepInclude([left[2], left[2], left[2], left[2]]))
         ) {
             if (chunk.deepInclude([pai, pai])) {
-                jocbo.push('sosa');
+                jocbo.push('sosam');
                 break;
             }
         }
@@ -526,65 +572,36 @@ checkJocbo = function(info, player, pai, dragon) {
         jocbo.push('chung');
     }
 
-    if (jocbo.length != 0) {
-        console.log(chunk, jocbo);
-    }
-
+    console.log('chunk: ', chunk);
+    console.log('jocbo: ', jocbo);
     return jocbo;
 }
 
 // 화료 가능 여부
 checkWin = function (info, player, pai) {
     let sonPai = player.sonPai;
-    let playerInfo = getPlayerInfo(player);
 
     // 화료 가능 모양인가
     let dragon = [];
     checkChunk(sonPai.concat(pai), false, [], dragon);
-    if (playerInfo.menjen) checkChiToi(sonPai.concat(pai), [], dragon);
+    if (player.menjen) checkChiToi(sonPai.concat(pai), [], dragon);
     checkGuksa(sonPai.concat(pai), dragon);
-    //if (dragon.length != 0) console.log(dragon);
 
     if (dragon.length == 0) {
         return false;
     }
 
-    // 족보가 있는가
+    // 족보가 있는 모양이 있는가
     let jocbo = [];
-    dragon.forEach(function(dragon) {
+    let flag = false;
+    for (let i = 0; i < dragon.length; i++) {
         jocbo = checkJocbo(info, player, pai, dragon);
-    });
-    if (jocbo.length != 0) {
-        //console.log(jocbo);
-        return true;
+        if (jocbo.length != 0) {
+            flag = true;
+        }
     }
 
-    return false;
-}
-
-// 플레이어 정보
-getPlayerInfo = function (player) {
-    let info = {
-        rich: false,        // 리치
-        ilbal: false,       // 일발
-        menjen: true,       // 멘젠
-    }
-
-    player.cry.forEach(function(cry) {
-        // 패를 가져온 흔적이 있으면 울었음
-        //console.log(cry);
-        if (cry.from != undefined) info.menjen = false;
-    });
-    
-    if (player.rich == true) {
-        info.rich = true;
-    }
-
-    if (player.ilbal == true) {
-        info.ilbal = true;
-    }
-
-    return info;
+    return flag;
 }
 
 // 패 정보
@@ -594,8 +611,8 @@ getPaiColor = function (pais) {
     let ton = 0;
     let sak = 0;
     let ja = 0;
-    pais.forEach(function(pai) {
-        let t = parseInt(pai/10);
+    pais.forEach(function (pai) {
+        let t = parseInt(pai / 10);
         if (t == 1) {
             man++;
         } else if (t == 2) {
@@ -610,12 +627,12 @@ getPaiColor = function (pais) {
     if (man + ton + sak == 0) {
         return 'ja';
     } else if (ton + sak + ja == 0 ||
-    man + sak + ja == 0 ||
-    ton + sak + ja == 0) {
+        man + sak + ja == 0 ||
+        ton + sak + ja == 0) {
         return 'chung';
     } else if (ton + sak == 0 ||
-    man + sak == 0 ||
-    man + ton == 0) {
+        man + sak == 0 ||
+        man + ton == 0) {
         return 'hon';
     }
 
@@ -623,7 +640,7 @@ getPaiColor = function (pais) {
 }
 
 // 패의 개별 정보를 수집한다.
-getPaiInfo2 = function (player, sonChunk, pai) {
+getPaiInfo = function (chunk, pai) {
     let info = {
         shun: 0,        // 슌츠의 갯수
         cut: 0,         // 커츠의 갯수
@@ -631,14 +648,7 @@ getPaiInfo2 = function (player, sonChunk, pai) {
     };
 
     // 슌츠와 커츠의 갯수
-    player.cry.forEach(function(cry) {
-        if (cry.pais[0] == cry.pais[1]) {
-            info.cut++;
-        } else {
-            info.shun++;
-        }
-    });
-    sonChunk.forEach(function(chunk) {
+    chunk.forEach(function (chunk) {
         if (chunk.length == 3) {
             if (chunk[0] == chunk[1]) {
                 info.cut++;
@@ -649,13 +659,13 @@ getPaiInfo2 = function (player, sonChunk, pai) {
     });
 
     // 대기형태
-    sonChunk.forEach(function(chunk) {
+    chunk.forEach(function (chunk) {
         if (chunk[0] == pai) {
             if (chunk[1] == pai) {
                 // 샤보
                 if (chunk.length == 3) {
                     info.type.push('shabo');
-                // 단기
+                    // 단기
                 } else {
                     info.type.push('short');
                 }
@@ -679,9 +689,9 @@ getPaiInfo2 = function (player, sonChunk, pai) {
     return info;
 }
 
-isYogu = function(pai) {
+isYogu = function (pai) {
     // 자패
-    if (parseInt(pai/10) == 4) {
+    if (parseInt(pai / 10) == 4) {
         return true;
     }
     // 1 9
@@ -692,7 +702,7 @@ isYogu = function(pai) {
     return false;
 }
 
-isNodu = function(pai) {
+isNodu = function (pai) {
     // 1 9
     if (pai % 10 == 1 || pai % 10 == 9) {
         return true;
@@ -701,19 +711,19 @@ isNodu = function(pai) {
     return false;
 }
 
-isClose = function(pai1, pai2) {
+isClose = function (pai1, pai2) {
     // 둘이 같으면 커츠
     if (pai1 == pai2) {
         return true;
     }
     // 둘이 가까이 있으면 슌츠
-    if (parseInt(pai1/10) == 4 ||
-    parseInt(pai2/10) == 4 ||
-    parseInt(pai1/10) != parseInt(pai2/10)) {
+    if (parseInt(pai1 / 10) == 4 ||
+        parseInt(pai2 / 10) == 4 ||
+        parseInt(pai1 / 10) != parseInt(pai2 / 10)) {
         return false;
     }
     // 차를 보고 대기패를 안다
-    let dif = Math.abs(parseInt(pai1%10) - parseInt(pai2%10));
+    let dif = Math.abs(parseInt(pai1 % 10) - parseInt(pai2 % 10));
     if (dif == 2 || dif == 1) {
         return true;
     }

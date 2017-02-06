@@ -143,6 +143,51 @@
   - `iconSelecet.js`
   - `jQuery-Cookie`
 - 클래스 구현 시 `module.exports` 구조로 통일
+- 족보 영어 이름
+  - 천화
+  - 지화
+  - 사안커
+  - 국사무쌍 - guksa
+  - 13면 국사무쌍 - 13guksa
+  - 구련보등 - guryun
+  - 순정구련보등 - sunguryun
+  - 녹일색 - nok
+  - 자일색 - ja
+  - 대삼원 - deasam
+  - 소사희 - sosa
+  - 대사희 - deasa
+  - 사깡즈
+  - 인화
+  - 유국만관
+  - 멘젠쯔모 - mjtsumo
+  - 리치 - rich
+  - 일발 - ilbal
+  - 핑후 - pinghu
+  - 이페코 - ipeco
+  - 량페코 - rypeco
+  - 더블리치 - dbrich
+  - 칠대자 - chitoi
+  - 삼색동순 - dongsun
+  - 일기통관 - ilgi
+  - 챤타 - chanta
+  - 준챤타 - jchanta
+  - 혼일색 - hon
+  - 삼원패 - bak, bal, chu
+  - 자풍패 - japung
+  - 장풍패 - jangpung
+  - 연풍패 - yunpung
+  - 탕야오 - tang
+  - 영상개화 - youngsang
+  - 챵깡
+  - 해저로월
+  - 하저로어
+  - 또이또이 - toitoi
+  - 삼안커
+  - 삼색동각 - donggak
+  - 소삼원 - sosam
+  - 혼노두 - honnodu
+  - 삼깡즈 - samkang
+  - 청일색 - chung
 
 ## 네트워크 통신
 
@@ -190,3 +235,5 @@
 [02.03] 드디어 족보 인식부분 코딩을 시작했다. 엄청 많다 - 오늘자 일지 쓰는것도 까먹고 파판을 했다...
 
 [02.04] 족보 코딩 중이다 - ...이거 네트워크가 문제가 아니었다...
+
+[02.05] 족보부분 코딩이 거의 끝났다. 리치 처리를 만들었다. - 슬슬 마작 클래스의 끝이 보인다. 문제는 후리텐, 리치중 안깡, 그리고 적도라.

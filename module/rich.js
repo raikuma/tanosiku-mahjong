@@ -143,9 +143,8 @@ checkRichGuksa = function(pais, out) {
 // 리치 가능 여부
 checkRich = function (player) {
     let sonPai = player.sonPai;
-    let playerInfo = getPlayerInfo(player);
 
-    if (!playerInfo.menjen) {
+    if (!player.menjen) {
         return false;
     }
 

@@ -233,7 +233,7 @@ function refreshInfo() {
     $('#info').text(
         GA(parseInt(info.guk / 4)) + (info.guk % 4 + 1) + '국 ' + info.bon + '본장' +
         ' 오야: ' + info.oya + ' 차례: ' + info.turn +
-        ' 남은패: ' + mj.lastPai
+        ' 남은패: ' + mj.info.lastPai
     )
 
     let html = '<span>도라: </span>';
@@ -291,6 +291,18 @@ function refreshInfo() {
         })
         $('#river' + i).html(html);
     }
+
+    html = '<span>왕패: </span>';
+    mj.king.forEach(function (pai) {
+        html += IMG(pai);
+    });
+    $('#king').html(html);
+
+    html = '<span>패산: </span>';
+    mj.paiSan.forEach(function (pai) {
+        html += IMG(pai);
+    });
+    $('#paiSan').html(html);
 }
 
 function IMG(pai, cls) {
