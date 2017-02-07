@@ -61,9 +61,18 @@ function chi(pai, player) {
     }
 }
 
-function kang(pai, player) {
+function ankang(pai, player) {
     let a = {
         action: 'ankang',
+        player: player,
+        pai: pai
+    };
+    doAction(a);
+}
+
+function gakang(pai, player) {
+    let a = {
+        action: 'gakang',
         player: player,
         pai: pai
     };
@@ -209,7 +218,29 @@ function setTrigger() {
 
                 // 아니면 버튼 등록
                 $('#pai'+i+' img').unbind('click');
-                $('#pai'+i+' img').click(function() {kang(parseInt(this.alt), i)});
+                $('#pai'+i+' img').click(function() {ankang(parseInt(this.alt), i)});
+            });
+        }
+
+        // 가깡
+        if (player.state.includes('gakang')) {
+            $('#pinfo'+i).append('<button id="gakang'+i+'">가깡</button>');
+            $('#gakang'+i).click(function() {
+                kangPai = checkGakang(player.cry, player.sonPai.concat(player.tsumoPai));
+                // 가능한 경우가 하나면 바로 깡
+                if (kangPai.length == 1) {
+                    let a = {
+                        action: 'gakang',
+                        player: i,
+                        pai: kangPai[0]
+                    };
+                    doAction(a);
+                    return
+                }
+
+                // 아니면 버튼 등록
+                $('#pai'+i+' img').unbind('click');
+                $('#pai'+i+' img').click(function() {gakang(parseInt(this.alt), i)});
             });
         }
 
@@ -346,6 +377,20 @@ let checkAnkang = function(sonPai) {
         if (cnt == 4) kangPais.push(pai);
     }
     return kangPais;
+}
+
+checkGakang = function (crys, pais) {
+    let ret = [];
+    pais.forEach(function (pai) {
+        crys.forEach(function (cry) {
+            console.log('cry, pai: ', cry, pai);
+            if (cry.pais[0] == cry.pais[1] && cry.pais[0] == pai) {
+                ret.push(pai);
+            }
+        });
+    });
+
+    return ret;
 }
 
 /**

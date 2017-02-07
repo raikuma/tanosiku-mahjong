@@ -76,6 +76,23 @@ checkAnkang = function (pais) {
     return kangPais;
 }
 
+/** 가깡 가능한 패를 리턴
+ * @param {Array} crys 운패
+ * @param {Array} pais 손패
+ */
+checkGakang = function (crys, pais) {
+    let ret = [];
+    pais.forEach(function (pai) {
+        crys.forEach(function (cry) {
+            if (cry.pais[0] == cry.pais[1] && cry.pais[0] == pai) {
+                ret.push(pai);
+            }
+        });
+    });
+
+    return ret;
+}
+
 /** 3-3-3-2 재귀용
  * @param {Array} pais 검사 패 배열
  * @param {Bool} cantHead true: 머리검사 안함
@@ -198,7 +215,9 @@ checkJocbo = function (info, player, pai, dragon) {
     });
 
     let paiColor = getPaiColor(pais);
-    let paiInfo = getPaiInfo(chunk, pai);
+    let paiInfo = getPaiInfo(info, player, dragon, pai);
+    console.log('dragon: ', dragon);
+    console.log('paiInfo: ', paiInfo);
 
     //----------------- 역만 체크
     /* 멘젠 한정 */
@@ -216,11 +235,8 @@ checkJocbo = function (info, player, pai, dragon) {
             jocbo.push('jihwa');
         }
         // 사안커
-        if (paiInfo.cut == 4) {
-            if (player.state.includes('tsumo') ||
-                paiInfo.type.includes('short')) {
-                jocbo.push('sanan');
-            }
+        if (paiInfo.ancut + paiInfo.ankang == 4) {
+            jocbo.push('sanan');
         }
         // 국사무쌍
         let gukPai = [11, 19, 21, 29, 31, 39, 41, 42, 43, 44, 45, 46, 47];
@@ -294,6 +310,10 @@ checkJocbo = function (info, player, pai, dragon) {
         }
     }
     // 사깡즈 - 책임지불
+    if (info.kang == 4) {
+        jocbo.push('sakang');
+    }
+
     // 역만이면 그 이하 역과는 중복이 안된다
     if (jocbo.length != 0) {
         console.log('chunk: ', chunk);
@@ -357,6 +377,7 @@ checkJocbo = function (info, player, pai, dragon) {
         //-- 2 --//
         // 더블리치
         if (player.dbrich == true) {
+            jocbo.remove('rich');
             jocbo.push('dbrich');
         }
         // 칠대자
@@ -490,6 +511,7 @@ checkJocbo = function (info, player, pai, dragon) {
         jocbo.push('youngsang');
     }
     // 챵깡
+    // 해저로월, 하저로어
     if (info.lastPai == 0) {
         if (player.state.includes('tsumo')) {
             // 해저로월 - 마지막 패로 쯔모
@@ -502,13 +524,12 @@ checkJocbo = function (info, player, pai, dragon) {
 
     //-- 2 --//
     // 또이또이
-    if (paiInfo.cut == 4) {
+    if (paiInfo.cut + paiInfo.kang == 4) {
         jocbo.push('toitoi');
     }
     // 삼안커
-    let sanInfo = getPaiInfo(dragon);
-    if (sanInfo.cut == 3) {
-        
+    if (paiInfo.ancut + paiInfo.ankang == 3) {
+        jocbo.push('saman')
     }
     // 삼색동각
     for (let i = 1; i <= 9; i++) {
@@ -556,13 +577,7 @@ checkJocbo = function (info, player, pai, dragon) {
         jocbo.push('honnodu');
     }
     // 삼깡즈
-    let kangcnt = 0;
-    for (let i = 0; i < chunk.length; i++) {
-        if (chunk[i].length == 4) {
-            kangcnt++;
-        }
-    }
-    if (kangcnt == 3) {
+    if (paiInfo.kang == 3) {
         jocbo.push('samkang');
     }
 
@@ -584,7 +599,7 @@ checkWin = function (info, player, pai) {
     // 화료 가능 모양인가
     let dragon = [];
     checkChunk(sonPai.concat(pai), false, [], dragon);
-    if (player.menjen) checkChiToi(sonPai.concat(pai), [], dragon);
+    checkChiToi(sonPai.concat(pai), [], dragon);
     checkGuksa(sonPai.concat(pai), dragon);
 
     if (dragon.length == 0) {
@@ -595,13 +610,17 @@ checkWin = function (info, player, pai) {
     let jocbo = [];
     let flag = false;
     for (let i = 0; i < dragon.length; i++) {
-        jocbo = checkJocbo(info, player, pai, dragon);
+        jocbo = checkJocbo(info, player, pai, dragon[i]);
         if (jocbo.length != 0) {
             flag = true;
         }
     }
 
     return flag;
+}
+
+getPanBu = function (jocbo, paiInfo) {
+
 }
 
 // 패 정보
@@ -640,53 +659,144 @@ getPaiColor = function (pais) {
 }
 
 // 패의 개별 정보를 수집한다.
-getPaiInfo = function (chunk, pai) {
-    let info = {
+getPaiInfo = function (info, player, chunks, pai) {
+    let ret = {
         shun: 0,        // 슌츠의 갯수
         cut: 0,         // 커츠의 갯수
+        kang: 0,        // 깡의 갯수
+        mincut: 0,      // 운 커츠
+        minkang: 0,     // 운 깡
+        ancut: 0,       // 울지 않은 커츠
+        ankang: 0,      // 울지 않은 깡
         type: [],       // 대기 형태 ('both', 'middle', 'side', 'shabo', 'short')
+        bu: 20,          // 부수
     };
+    let flag;
 
     // 슌츠와 커츠의 갯수
-    chunk.forEach(function (chunk) {
+    player.cry.forEach(function (cry) {
+        if (cry.pais[0] == cry.pais[1]) {
+            if (cry.pais.length == 4) {
+                if (!('from' in cry)) {
+                    // 안깡
+                    ret.ankang++;
+                    if (isYogu(cry.pais[0])) {
+                        ret.bu += 32;
+                    } else {
+                        ret.bu += 16;
+                    }
+                } else {
+                    // 대명깡, 가깡
+                    ret.minkang++;
+                    if (isYogu(cry.pais[0])) {
+                        ret.bu += 16;
+                    } else {
+                        ret.bu += 8;
+                    }
+                }
+            } else {
+                // 밍커
+                ret.mincut++;
+                if (isYogu(cry.pais[0])) {
+                    ret.bu += 4;
+                } else {
+                    ret.bu += 2;
+                }
+            }
+        } else {
+            // 슌츠
+            ret.shun++;
+        }
+    });
+    chunks.forEach(function (chunk) {
         if (chunk.length == 3) {
             if (chunk[0] == chunk[1]) {
-                info.cut++;
+                // 안커
+                ret.ancut++;
+                if (isYogu(chunk[0])) {
+                    ret.bu += 8;
+                } else {
+                    ret.bu += 4;
+                }
             } else {
-                info.shun++;
+                // 슌츠
+                ret.shun++;
+
+                if (!player.state.includes('tsumo')) {
+                    if (chunk.includes(pai)) {
+                    }
+                }
+            }
+        } else if (chunk.length == 2) {
+            if (!player.state.includes('tsumo')) {
+                if (chunk.includes(pai)) {
+                }
             }
         }
     });
 
-    // 대기형태
-    chunk.forEach(function (chunk) {
+    chunks.forEach(function (chunk) {
+        // 대기형태
         if (chunk[0] == pai) {
             if (chunk[1] == pai) {
-                // 샤보
                 if (chunk.length == 3) {
-                    info.type.push('shabo');
-                    // 단기
+                    // 샤보
+                    ret.type.singlePush('shabo');
                 } else {
-                    info.type.push('short');
+                    // 단기
+                    ret.type.singlePush('short');
                 }
             } else {
-                // 변짱
                 if (chunk[2] % 10 == 9) {
-                    info.type.push('side');
+                    // 변짱
+                    ret.type.singlePush('side');
+                } else {
+                    // 양면
+                    ret.type.singlePush('both');
                 }
             }
         } else if (chunk[1] == pai) {
             // 간짱
-            info.type.push('middle');
+            ret.type.singlePush('middle');
         } else if (chunk[2] == pai) {
             // 변짱
             if (chunk[0] % 10 == 1) {
-                info.type.push('side');
+                ret.type.singlePush('side');
+            } else {
+                // 양면
+                ret.type.singlePush('both');
             }
         }
-    });
 
-    return info;
+        // 특수 머리
+        let sh = [player.ga, parseInt(info.guk / 4), 45, 46, 47];
+        if (chunk.length == 2) {
+            if (sh.includes(chunk[0])) ret.bu += 2;
+            if (sh[0] == sh[1]) ret.bu += 2;
+        }
+    });
+    if (ret.type.includes('short') ||
+    ret.type.includes('side') ||
+    ret.type.includes('middle')) {
+        ret.bu += 2;
+    }
+
+    if (!player.state.includes('tsumo') &&
+        ret.type.includes('shabo')) {
+        ret.ancut--;
+        ret.mincut++;
+    }
+
+    if (player.menjen && !player.state.includes('tsumo')) {
+        ret.bu += 10
+    } else if (player.state.includes('tsumo')) {
+        ret.bu += 2;
+    }
+
+    ret.cut = ret.mincut + ret.ancut;
+    ret.kang = ret.minkang + ret.ankang;
+
+    return ret;
 }
 
 isYogu = function (pai) {
