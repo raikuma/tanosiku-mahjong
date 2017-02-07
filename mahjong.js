@@ -16,7 +16,7 @@ require('./module/debug');
  */
 let Mahjong = function (initScore) {
     // 초기 게임 정보
-    this.info = { guk: 0, bon: 0, oya: 0, lastPai: 0 };
+    this.info = { guk: 0, bon: 0, oya: 0, lastPai: 0, yon: false };
     this.paiSan = [];   // 패산
     this.king = [];     // 왕패
     this.players = [];  // 플레이어 정보
@@ -84,6 +84,7 @@ Mahjong.prototype.setGame = function () {
         player.rich = false;
         player.dbrich = false;
         player.ilbal = false;
+        player.freeten = false;
 
         for (let j = 0; j < INITSONPAINUM; j++) {
             paiSan.popPush(player.sonPai);
@@ -98,12 +99,14 @@ Mahjong.prototype.setGame = function () {
  * @param {Bool} yon 연장 여부
  */
 Mahjong.prototype.nextGame = function (yon) {
-    if (yon) {
+    if (this.info.yon) {
         this.info.bon++;
     } else {
+        this.info.bon = 0;
         this.info.guk++;
         this.info.oya = (this.info.oya + 1) % 4;
     }
+    this.info.yon = false;
 }
 
 Mahjong.prototype.doAction = function (a) {
@@ -203,7 +206,8 @@ Mahjong.prototype.doAction = function (a) {
                 }
 
                 // 리치면 치퐁깡 불가능
-                if (!player.rich) {
+                // 마지막 패는 울지 못함
+                if (!(player.rich || info.lastPai == 0)) {
                     if (i == 1 && checkChi(player.sonPai, a.pai).length != 0) {
                         player.state.push('chi');
                         flag = true;
@@ -362,7 +366,7 @@ Mahjong.prototype.doAction = function (a) {
                 console.log('**안깡 가능한 상태 아님**');
                 return false;
             }
-            let kangPais = checkAnkang(sonPai.concat(player.tsumoPai))
+            let kangPais = checkAnkang(player, sonPai.concat(player.tsumoPai))
             if (!kangPais.includes(pai)) {
                 console.log('**안깡 불가능**');
                 return false;
@@ -436,8 +440,7 @@ Mahjong.prototype.doAction = function (a) {
                 return false;
             }
             let winPai = wantPai.pai;
-            win(info, player, winPai);
-            return true;
+            return this.win(player, winPai);
         }
         case 'tsumo': {
             if (!player.state.includes('tsumo!')) {
@@ -445,12 +448,15 @@ Mahjong.prototype.doAction = function (a) {
                 return false;
             }
             let winPai = player.tsumoPai;
-            win(info, player, winPai);
-            return true;
+            return this.win(player, winPai);
         }
         /** 캔슬
          */
         case 'cancel': {
+            // 론인데 패스하면 후리텐
+            if (player.state.includes('ron')) {
+                player.freeten = true;
+            }
             player.state = [];
             if (hasToWait(players, ['chi', 'pong', 'kang', 'ron'])) {
                 return true;
@@ -565,9 +571,9 @@ Mahjong.prototype.nextTurn = function () {
 /** 패 받기 */
 Mahjong.prototype.tsumo = tsumo;
 
-Mahjong.prototype.uguk = function() {
-    console.log('**유국**');
-}
+Mahjong.prototype.win = win;
+
+Mahjong.prototype.uguk = uguk;
 
 module.exports = Mahjong;
 

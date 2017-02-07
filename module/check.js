@@ -62,7 +62,7 @@ checkKang = function (sonPai, pai) {
  * @param {Array} sonPai 손패
  * @return {Pai}
  */
-checkAnkang = function (pais) {
+checkAnkang = function (player, pais) {
     kangPais = [];
     while (pais.length != 0) {
         let pai = pais.pop();
@@ -70,6 +70,16 @@ checkAnkang = function (pais) {
         while (pais.indexOf(pai) != -1) {
             pais.splice(pais.indexOf(pai), 1)
             cnt++;
+        }
+        if (player.rich) {
+            let waitPai = getWaitPai(player.sonPai);
+            let pais = player.sonPai.concat(player.tsumoPai);
+            pais.allRemove(pai);
+            let waitPai2 = getWaitPai(pais);
+            if (!deepEqual(waitPai, waitPai2)) {
+                // 대기패 바뀜
+                continue;
+            }
         }
         if (cnt == 4) kangPais.push(pai);
     }

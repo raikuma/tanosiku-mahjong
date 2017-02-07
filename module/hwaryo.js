@@ -1,119 +1,28 @@
 /* 패의 완성 여부 등 승리 조건의 검사 */
 
-/** 3-3-3-2 재귀용
- * @param {Array} pais 검사 패 배열
- * @param {Bool} cantHead true: 머리검사 안함
- * @param {Array} chunk 현재까지 모은 형태
- * @param {Array} out 리턴용
- */
-checkChunk = function (pais, cantHead, chunk, out) {
-    // 남은 패가 없으면 기록 후 종료
-    if (pais.length == 0) {
-        if (!out.deepInclude(chunk)) {
-            out.push(chunk);
-        }
-        return;
-    }
-
-    let skip = [];      // 이미 검사한 패
-    let skipChi = [];   // 이미 검사한 슌츠
-
-    for (let i = 0; i < pais.length; i++) {
-        if (skip.includes(pais[i])) continue;
-        skip.push(pais[i]);
-
-        let pai = pais[i];
-        let leftPai = pais.deepCopy();
-        let flag = false;
-        leftPai.remove(pai);
-
-        // 1번 머리
-        if (!cantHead && leftPai.includes(pai)) {
-            let lp = leftPai.deepCopy();
-            let pc = chunk.deepCopy();
-            lp.remove(pai);
-            pc.push([pai, pai]);
-            checkChunk(lp, true, pc, out);
-            flag = true;
-        }
-        // 2번 커츠
-        if (checkPong(leftPai, pai)) {
-            let lp = leftPai.deepCopy();
-            let pc = chunk.deepCopy();
-            lp.removes([pai, pai]);
-            pc.push([pai, pai, pai]);
-            checkChunk(lp, cantHead, pc, out);
-            flag = true;
-        }
-        // 3번 슌츠
-        let chiPais = checkChi(leftPai, pai);
-        if (chiPais.length != 0) {
-            for (let j = 0; j < chiPais.length; j++) {
-                let chiPai = chiPais[j];
-                let chiChunk = chiPai.concat(pai); chiChunk.sort();
-
-                if (skipChi.deepInclude(chiChunk)) continue;
-                skipChi.push(chiChunk);
-
-                let lp = leftPai.deepCopy();
-                let pc = chunk.deepCopy();
-                lp.removes(chiPai);
-                pc.push(chiChunk);
-                checkChunk(lp, cantHead, pc, out);
-            }
-            flag = true;
-        }
-        // 아무 쓸모 없는 패가 있음,
-        if (flag == false) return;
-    }
-}
-
-/** 칠대자
- * @param {Array} pais 검사 패 배열 (파괴됨)
- * @param {Array} chunk 현재까지 모은 형태
- * @param {Array} out 리턴용
- */
-checkChiToi = function (pais, chunk, out) {
-    // 남은 패가 없으면 기록 후 종료
-    if (pais.length == 0) {
-        out.push(chunk);
-        return;
-    }
-
-    let pai = pais.pop();
-    // 중복되면 치또이 아님
-    if (chunk.deepInclude([pai, pai])) {
-        return;
-    }
-    if (pais.includes(pai)) {
-        pais.remove(pai);
-        chunk.push([pai, pai]);
-        checkChiToi(pais, chunk, out);
-    }
-
-    return;
-}
-
-/** 국사무쌍
- * @param {Array} pais
- * @param {Array} out 리턴용
- */
-checkGuksa = function (pais, out) {
-    let gukPai = [11, 19, 21, 29, 31, 39, 41, 42, 43, 44, 45, 46, 47];
-    gukPai.forEach(function (pai) {
-        if (deepEqual(pais, gukPai.concat(pai))) {
-            out.push(pais);
-            return
-        }
-    });
-}
-
 // 화료 가능 여부
 checkWin = function (info, player, winPai) {
     let sonPai = player.sonPai;
 
+    // 후리텐
+    if (player.freeten == true) {
+        console.log('**후리텐2**');
+        return false;
+    }
+    if (!player.state.includes('tsumo')) {
+        let waitPai = getWaitPai(sonPai);
+        // console.log('waitPai: ', waitPai);
+        for (let i = 0; i < player.river.length; i++) {
+            let pai = player.river[i].pai;
+            if (waitPai.includes(pai)) {
+                console.log('**후리텐1**');
+                return false;
+            }
+        }
+    }
+
     // 화료 가능 모양인가
-    let dragons = getDragon(player.sonPai, winPai);
+    let dragons = getDragon(player.sonPai.concat(winPai));
     if (dragons.length == 0) {
         return false;
     }
@@ -131,148 +40,6 @@ checkWin = function (info, player, winPai) {
     }
 
     return flag;
-}
-
-// 패의 개별 정보를 수집한다.
-getPaiInfo = function (info, player, sonChunk, pai) {
-    let ret = {
-        pais: [],       // 전체 패 배열
-        chunks: [],      // 전체 묶음 배열
-        color: '',      // 패의 색깔
-        shun: 0,        // 슌츠의 갯수
-        cut: 0,         // 커츠의 갯수
-        kang: 0,        // 깡의 갯수
-        mincut: 0,      // 운 커츠
-        minkang: 0,     // 운 깡
-        ancut: 0,       // 울지 않은 커츠
-        ankang: 0,      // 울지 않은 깡
-        sphead: false,  // 특수 머리
-        type: [],       // 대기 형태 ('both', 'middle', 'side', 'shabo', 'short')
-        bu: 20          // 부수
-    };
-
-    // 전체 패 배열
-    ret.pais = player.sonPai.concat(pai);
-    ret.chunks = sonChunk;
-    player.cry.forEach(function (cry) {
-        ret.pais.concat(cry.pais);
-        ret.chunks.push(cry.pais);
-    });
-
-    // 패 색깔
-    ret.color = getPaiColor(ret.pais);
-
-    // 슌츠와 커츠의 갯수
-    let cryAndSonChunk = player.cry.concat(sonChunk);
-    cryAndSonChunk.forEach(function (chunk) {
-        let bu;
-        switch (getChunkType(chunk)) {
-            case 'ankang':
-                bu = 16;
-                ret.ankang++;
-                break;
-            case 'minkang':
-                bu = 8;
-                ret.minkang++;
-                break;
-            case 'ancut':
-                bu = 4;
-                ret.ancut++;
-                break;
-            case 'mincut':
-                bu = 2;
-                ret.mincut++;
-                break;
-            case 'shun':
-                bu = 0;
-                ret.shun++;
-                break;
-            case 'head':
-                bu = 0;
-            default:
-                bu = 0;
-        }
-        let pai;
-        if ('pais' in chunk) {
-            pai = chunk.pais[0];
-        } else {
-            pai = chunk[0];
-        }
-        if (isYogu(pai)) bu *= 2;
-        ret.bu += bu;
-    });
-
-    // 대기형태
-    sonChunk.forEach(function (chunk) {
-        if (chunk[0] == pai) {
-            if (chunk[1] == pai) {
-                if (chunk.length == 3) {
-                    // 샤보
-                    ret.type.singlePush('shabo');
-                } else {
-                    // 단기
-                    ret.type.singlePush('short');
-                }
-            } else {
-                if (chunk[2] % 10 == 9) {
-                    // 변짱
-                    ret.type.singlePush('side');
-                } else {
-                    // 양면
-                    ret.type.singlePush('both');
-                }
-            }
-        } else if (chunk[1] == pai) {
-            // 간짱
-            ret.type.singlePush('middle');
-        } else if (chunk[2] == pai) {
-            // 변짱
-            if (chunk[0] % 10 == 1) {
-                ret.type.singlePush('side');
-            } else {
-                // 양면
-                ret.type.singlePush('both');
-            }
-        }
-    });
-
-    if (ret.type.includes('short') ||
-        ret.type.includes('side') ||
-        ret.type.includes('middle')) {
-        ret.bu += 2;
-    }
-
-    // 특수 머리
-    for (let i = 0; i < sonChunk.length; i++) {
-        if (sonChunk[i].length == 2) {
-            let sh = [player.ga, parseInt(info.guk / 4), 45, 46, 47];
-            if (sh.includes(sonChunk[i][0])) {
-                ret.bu += 2;
-                ret.sphead = true;
-            }
-            if (sh[0] == sh[1]) ret.bu += 2;
-            break;
-        }
-    }
-
-    // 밍커 갯수를 위한 처리
-    if (!player.state.includes('tsumo') &&
-        ret.type.includes('shabo')) {
-        ret.ancut--;
-        ret.mincut++;
-    }
-
-    // 멘젠론, 쯔모 시 부수 추가
-    if (player.menjen && !player.state.includes('tsumo')) {
-        ret.bu += 10
-    } else if (player.state.includes('tsumo')) {
-        ret.bu += 2;
-    }
-
-    ret.cut = ret.mincut + ret.ancut;
-    ret.kang = ret.minkang + ret.ankang;
-
-    return ret;
 }
 
 /** 족보체크 */
@@ -656,6 +423,146 @@ getJocbo = function (info, player, paiInfo) {
     return jocbo;
 }
 
+// 패의 개별 정보를 수집한다.
+getPaiInfo = function (info, player, sonChunk, pai) {
+    let ret = {
+        pais: [],       // 전체 패 배열
+        chunks: [],     // 전체 묶음 배열
+        color: '',      // 패의 색깔
+        shun: 0,        // 슌츠의 갯수
+        cut: 0,         // 커츠의 갯수
+        kang: 0,        // 깡의 갯수
+        mincut: 0,      // 운 커츠
+        minkang: 0,     // 운 깡
+        ancut: 0,       // 울지 않은 커츠
+        ankang: 0,      // 울지 않은 깡
+        sphead: false,  // 특수 머리
+        type: [],       // 대기 형태 ('both', 'middle', 'side', 'shabo', 'short')
+        bu: 20          // 부수
+    };
+
+    // 전체 패 배열
+    ret.pais = player.sonPai.concat(pai);
+    ret.chunks = sonChunk.deepCopy();
+    player.cry.forEach(function (cry) {
+        ret.pais.concat(cry.pais);
+        ret.chunks.push(cry.pais);
+    });
+
+    // 패 색깔
+    ret.color = getPaiColor(ret.pais);
+
+    // 슌츠와 커츠의 갯수
+    let cryAndSonChunk = player.cry.concat(sonChunk);
+    cryAndSonChunk.forEach(function (chunk) {
+        let bu;
+        switch (getChunkType(chunk)) {
+            case 'ankang':
+                bu = 16;
+                ret.ankang++;
+                break;
+            case 'minkang':
+                bu = 8;
+                ret.minkang++;
+                break;
+            case 'ancut':
+                bu = 4;
+                ret.ancut++;
+                break;
+            case 'mincut':
+                bu = 2;
+                ret.mincut++;
+                break;
+            case 'shun':
+                bu = 0;
+                ret.shun++;
+                break;
+            default:
+                bu = 0;
+        }
+        let pai;
+        if ('pais' in chunk) {
+            pai = chunk.pais[0];
+        } else {
+            pai = chunk[0];
+        }
+        if (isYogu(pai)) bu *= 2;
+        ret.bu += bu;
+    });
+
+    // 대기형태
+    sonChunk.forEach(function (chunk) {
+        if (chunk[0] == pai) {
+            if (chunk[1] == pai) {
+                if (chunk.length == 3) {
+                    // 샤보
+                    ret.type.singlePush('shabo');
+                } else {
+                    // 단기
+                    ret.type.singlePush('short');
+                }
+            } else {
+                if (chunk[2] % 10 == 9) {
+                    // 변짱
+                    ret.type.singlePush('side');
+                } else {
+                    // 양면
+                    ret.type.singlePush('both');
+                }
+            }
+        } else if (chunk[1] == pai) {
+            // 간짱
+            ret.type.singlePush('middle');
+        } else if (chunk[2] == pai) {
+            // 변짱
+            if (chunk[0] % 10 == 1) {
+                ret.type.singlePush('side');
+            } else {
+                // 양면
+                ret.type.singlePush('both');
+            }
+        }
+    });
+
+    if (ret.type.includes('short') ||
+        ret.type.includes('side') ||
+        ret.type.includes('middle')) {
+        ret.bu += 2;
+    }
+
+    // 특수 머리
+    for (let i = 0; i < sonChunk.length; i++) {
+        if (sonChunk[i].length == 2) {
+            let sh = [player.ga, parseInt(info.guk / 4), 45, 46, 47];
+            if (sh.includes(sonChunk[i][0])) {
+                ret.bu += 2;
+                ret.sphead = true;
+            }
+            if (sh[0] == sh[1]) ret.bu += 2;
+            break;
+        }
+    }
+
+    // 밍커 갯수를 위한 처리
+    if (!player.state.includes('tsumo') &&
+        ret.type.includes('shabo')) {
+        ret.ancut--;
+        ret.mincut++;
+    }
+
+    // 멘젠론, 쯔모 시 부수 추가
+    if (player.menjen && !player.state.includes('tsumo')) {
+        ret.bu += 10
+    } else if (player.state.includes('tsumo')) {
+        ret.bu += 2;
+    }
+
+    ret.cut = ret.mincut + ret.ancut;
+    ret.kang = ret.minkang + ret.ankang;
+
+    return ret;
+}
+
 /** 패 색깔
  * @param {Array} pais 패 배열
  */
@@ -709,18 +616,6 @@ getPaiColor = function (pais) {
     return '';
 }
 
-/** 손패의 화료 가능한 모양을 반환 
- * @param {Array} sonPai 플레이어의 손패 배열
- * @param {Pai} winPai 화료패
- */
-getDragon = function (sonPai, winPai) {
-    let dragon = [];
-    checkChunk(sonPai.concat(winPai), false, [], dragon);
-    checkChiToi(sonPai.concat(winPai), [], dragon);
-    checkGuksa(sonPai.concat(winPai), dragon);
-    return dragon;
-}
-
 /** 몸의 종류를 반환
  * @param {Array} chunk 검사할 패 묶음 또는 운패
  * @return {String} ankang, minkang, ancur, mincut, shun, head
@@ -758,4 +653,124 @@ getChunkType = function (chunk) {
             return 'head';
         }
     }
+}
+
+/** 손패의 화료 가능한 모양을 반환 
+ * @param {Array} sonPai 플레이어의 손패 배열
+ * @param {Pai} winPai 화료패
+ */
+getDragon = function (pais) {
+    let dragon = [];
+    checkChunk(pais.deepCopy(), false, [], dragon);
+    checkChiToi(pais.deepCopy(), [], dragon);
+    checkGuksa(pais.deepCopy(), dragon);
+    return dragon;
+}
+
+/** 3-3-3-2 재귀용
+ * @param {Array} pais 검사 패 배열
+ * @param {Bool} cantHead true: 머리검사 안함
+ * @param {Array} chunk 현재까지 모은 형태
+ * @param {Array} out 리턴용
+ */
+checkChunk = function (pais, cantHead, chunk, out) {
+    // 남은 패가 없으면 기록 후 종료
+    if (pais.length == 0) {
+        if (!out.deepInclude(chunk)) {
+            out.push(chunk);
+        }
+        return;
+    }
+
+    let skip = [];      // 이미 검사한 패
+    let skipChi = [];   // 이미 검사한 슌츠
+
+    for (let i = 0; i < pais.length; i++) {
+        if (skip.includes(pais[i])) continue;
+        skip.push(pais[i]);
+
+        let pai = pais[i];
+        let leftPai = pais.deepCopy();
+        let flag = false;
+        leftPai.remove(pai);
+
+        // 1번 머리
+        if (!cantHead && leftPai.includes(pai)) {
+            let lp = leftPai.deepCopy();
+            let pc = chunk.deepCopy();
+            lp.remove(pai);
+            pc.push([pai, pai]);
+            checkChunk(lp, true, pc, out);
+            flag = true;
+        }
+        // 2번 커츠
+        if (checkPong(leftPai, pai)) {
+            let lp = leftPai.deepCopy();
+            let pc = chunk.deepCopy();
+            lp.removes([pai, pai]);
+            pc.push([pai, pai, pai]);
+            checkChunk(lp, cantHead, pc, out);
+            flag = true;
+        }
+        // 3번 슌츠
+        let chiPais = checkChi(leftPai, pai);
+        if (chiPais.length != 0) {
+            for (let j = 0; j < chiPais.length; j++) {
+                let chiPai = chiPais[j];
+                let chiChunk = chiPai.concat(pai); chiChunk.sort();
+
+                if (skipChi.deepInclude(chiChunk)) continue;
+                skipChi.push(chiChunk);
+
+                let lp = leftPai.deepCopy();
+                let pc = chunk.deepCopy();
+                lp.removes(chiPai);
+                pc.push(chiChunk);
+                checkChunk(lp, cantHead, pc, out);
+            }
+            flag = true;
+        }
+        // 아무 쓸모 없는 패가 있음,
+        if (flag == false) return;
+    }
+}
+
+/** 칠대자
+ * @param {Array} pais 검사 패 배열 (파괴됨)
+ * @param {Array} chunk 현재까지 모은 형태
+ * @param {Array} out 리턴용
+ */
+checkChiToi = function (pais, chunk, out) {
+    // 남은 패가 없으면 기록 후 종료
+    if (pais.length == 0) {
+        out.push(chunk);
+        return;
+    }
+
+    let pai = pais.pop();
+    // 중복되면 치또이 아님
+    if (chunk.deepInclude([pai, pai])) {
+        return;
+    }
+    if (pais.includes(pai)) {
+        pais.remove(pai);
+        chunk.push([pai, pai]);
+        checkChiToi(pais, chunk, out);
+    }
+
+    return;
+}
+
+/** 국사무쌍
+ * @param {Array} pais
+ * @param {Array} out 리턴용
+ */
+checkGuksa = function (pais, out) {
+    let gukPai = [11, 19, 21, 29, 31, 39, 41, 42, 43, 44, 45, 46, 47];
+    gukPai.forEach(function (pai) {
+        if (deepEqual(pais, gukPai.concat(pai))) {
+            out.push(pais);
+            return
+        }
+    });
 }

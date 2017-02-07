@@ -72,14 +72,21 @@ tsumo = function (src, player) {
         this.king.popPush(this.dora);
     }
 
-    // 안깡 체크
-    if (checkAnkang(player.sonPai.concat(pai)).length != 0) {
-        player.state.push('ankang');
+    // 후리텐 풀림
+    if (!player.rich) {
+        player.freeten = false;
     }
 
-    // 가깡 체크
-    if (checkGakang(player.cry, player.sonPai.concat(pai)) != 0) {
-        player.state.push('gakang');
+    if (this.info.lastPai > 0) {
+        // 안깡 체크
+        if (checkAnkang(player, player.sonPai.concat(pai)).length != 0) {
+            player.state.push('ankang');
+        }
+
+        // 가깡 체크
+        if (checkGakang(player.cry, player.sonPai.concat(pai)) != 0) {
+            player.state.push('gakang');
+        }
     }
 
     // 리치 체크
@@ -101,11 +108,13 @@ tsumo = function (src, player) {
  * @param {Player} player 플레이어
  * @param {Pai} pai 화료패
  */
-win = function (info, player, winPai) {
+win = function (player, winPai) {
+    let info = this.info;
+    let players = this.players;
     let sonPai = player.sonPai;
 
     // 화료 가능 모양인가
-    let dragons = getDragon(player.sonPai, winPai);
+    let dragons = getDragon(player.sonPai.concat(winPai));
     if (dragons.length == 0) {
         return false;
     }
@@ -116,13 +125,14 @@ win = function (info, player, winPai) {
         jocbo: [],
         pan: 0,
         bu: 0,
-        score: [],
+        score: undefined,
         type: ''
     }
     for (let i = 0; i < dragons.length; i++) {
         let paiInfo = getPaiInfo(info, player, dragons[i], winPai);
-        console.log('paiInfo: ', paiInfo);
         jocbo = getJocbo(info, player, paiInfo);
+        console.log('paiInfo: ', paiInfo);
+        console.log('jocbo: ', jocbo);
         if (jocbo.length != 0) {
             flag = true;
         }
@@ -146,10 +156,67 @@ win = function (info, player, winPai) {
         winInfo.type = 'ron';
     }
     winInfo.score = calcScore(player.ga, winInfo.pan, winInfo.bu, winInfo.type);
-    console.log('jocbo: ', winInfo.jocbo);
     console.log('pan: ', winInfo.pan);
     console.log('bu: ', winInfo.bu);
     console.log('score: ', winInfo.score);
 
-    return;
+    let bonus = this.bon*300;
+    if (winInfo.type == 'tsumo') {
+        for (let i = 0; i < players.length; i++) {
+            if (players[i] == player) {
+                players[i].score += winInfo.score[0] + winInfo.score[1] * 2 + bonus;
+            } else if (i == info.oya) {
+                players[i].score -= winInfo.score[0] + bonus/3;
+            } else {
+                players[i].score -= winInfo.score[1] + bonus/3;
+            }
+        }
+    } else {
+        player.score += winInfo.score + bonus;
+        players[info.turn].score -= winInfo.score + bonus;
+    }
+    if (players.indexOf(player) == info.oya) {
+        this.yon = true;
+    }
+
+    this.players.forEach(function (player) {
+        player.state = [];
+    });
+
+    console.log('**화료**');
+    return true;
+}
+
+/** 유국 */
+uguk = function () {
+    console.log('**유국**');
+
+    let players = this.players;
+    let winPlayers = [];
+    let losePlayers = [];
+
+    players.forEach(function (player) {
+        let waitPai = getWaitPai(player.sonPai);
+        if (waitPai.length != 0) {
+            winPlayers.push(player);
+        } else {
+            losePlayers.push(player);
+        }
+        player.state = [];
+    });
+
+    if (winPlayers.length > 0) {
+        winPlayers.forEach(function (player) {
+            player.score += 3000 / winPlayers.length;
+        });
+        losePlayers.forEach(function (player) {
+            player.score -= 3000 / losePlayers.length;
+        });
+    }
+
+    if (winPlayers.length == 1 &&
+        winPlayers[0] == players[this.info.oya]) {
+        console.log('**연장**');
+        this.info.yon = true;
+    }
 }

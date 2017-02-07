@@ -51,12 +51,20 @@ Array.prototype.deepOrIncludes = function(arr) {
 }
 
 Array.prototype.remove = function(e) {
-    this.splice(this.indexOf(e), 1);
+    if (this.indexOf(e) != -1) {
+        this.splice(this.indexOf(e), 1);
+    }
 }
 
 Array.prototype.removes = function(arr) {
     for (let i = 0; i < arr.length; i++) {
         this.remove(arr[i]);
+    }
+}
+
+Array.prototype.allRemove = function(e) {
+    while (this.indexOf(e) != -1) {
+        this.remove(e);
     }
 }
 

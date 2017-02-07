@@ -29,6 +29,17 @@ $(function () {
     $('#newgame').click(function() {
         socket.emit('newgame');
     })
+    $('body').keydown(function() {
+        socket.emit('newgame');
+    })
+
+    $('#nextgame').click(function() {
+        socket.emit('nextgame');
+    })
+
+    $('#initgame').click(function() {
+        socket.emit('initgame');
+    })
 })
 
 function doAction(a) {

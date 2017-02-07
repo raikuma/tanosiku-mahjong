@@ -1,15 +1,56 @@
+// 리치 가능 여부
+checkRich = function (player) {
+    let sonPai = player.sonPai.concat(player.tsumoPai);
+
+    if (!player.menjen) {
+        return false;
+    }
+
+    let richPai = [];
+    let skip = [];
+    for (let i = 0; i < sonPai.length; i++) {
+        if (skip.includes(sonPai[i])) {
+            continue;
+        }
+        skip.push(sonPai[i]);
+        let pais = sonPai.deepCopy();
+        pais.remove(sonPai[i]);
+        let waitPai = getWaitPai(pais);
+        if (waitPai.length != 0) {
+            richPai.singlePush(sonPai[i]);
+        }
+    }
+
+    return richPai;
+}
+
+// 텐파이
+getWaitPai = function (sonPai) {
+    let pais = ALLPAI;
+    let waitPai = [];
+    pais.forEach(function (pai) {
+        let winPais = sonPai.concat(pai);
+        let dragons = getDragon(winPais);
+        if (dragons.length != 0) {
+            waitPai.push(pai);
+        }
+    });
+    return waitPai;
+}
+
+
 /** 3-3-3-3-2 리치 가능 여부
  * @param {Array} pais 검사 패 배열
  * @param {Bool} cantHead true: 머리검사 안함
  * @param {Array} chunk 현재까지 모은 형태
  * @param {Array} out 리턴용 (버림패)
  */
-checkRichChunk = function(pais, cantHead, chunk, out) {
+checkRichChunk = function (pais, cantHead, chunk, out) {
     // 남은 패가 없으면 아무거나 버려도 됨
     if (pais.length == 0) {
         out.singlePush(null);
         return;
-    // 남은 패가 2개일때
+        // 남은 패가 2개일때
     } else if (pais.length == 2) {
         let pai1 = pais[0];
         let pai2 = pais[1];
@@ -25,8 +66,8 @@ checkRichChunk = function(pais, cantHead, chunk, out) {
     } else if (pais.length == 3) {
         for (let i = 0; i < 3; i++) {
             let pai1 = pais[i];
-            let pai2 = pais[(i+1)%3];
-            let pai3 = pais[(i+2)%3];
+            let pai2 = pais[(i + 1) % 3];
+            let pai3 = pais[(i + 2) % 3];
 
             if (isClose(pai1, pai2)) {
                 out.singlePush(pai3);
@@ -62,7 +103,7 @@ checkRichChunk = function(pais, cantHead, chunk, out) {
         if (chiPais.length != 0) {
             for (let j = 0; j < chiPais.length; j++) {
                 let chiPai = chiPais[j];
-                let chiChunk = chiPai.concat(pai);  chiChunk.sort();
+                let chiChunk = chiPai.concat(pai); chiChunk.sort();
 
                 if (skipChi.deepInclude(chiChunk)) continue;
                 skipChi.push(chiChunk);
@@ -80,7 +121,7 @@ checkRichChunk = function(pais, cantHead, chunk, out) {
  * @param {Array} chunk 현재까지 모은 형태
  * @param {Array} out 리턴용
  */
-checkRichChiToi = function(pais) {
+checkRichChiToi = function (pais) {
     let flag = true;
     let richPai = [];
     let chunk = [];
@@ -113,9 +154,9 @@ checkRichChiToi = function(pais) {
  * @param {Array} pais
  * @param {Array} out 리턴용
  */
-checkRichGuksa = function(pais, out) {
+checkRichGuksa = function (pais, out) {
     let gukPai = [11, 19, 21, 29, 31, 39, 41, 42, 43, 44, 45, 46, 47];
-    
+
     let cnt = 0;
     for (let i = 0; i < gukPai.length; i++) {
         if (pais.includes(gukPai[i])) {
@@ -141,7 +182,7 @@ checkRichGuksa = function(pais, out) {
 }
 
 // 리치 가능 여부
-checkRich = function (player) {
+checkRich2 = function (player) {
     let sonPai = player.sonPai;
 
     if (!player.menjen) {
