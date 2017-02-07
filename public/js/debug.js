@@ -111,7 +111,7 @@ function setTrigger() {
             $('#tsumo'+i).click(function(event) {
                 let a = {
                     action: 'tsumo',
-                    player: i
+                    player: i,
                 };
                 doAction(a)
             });

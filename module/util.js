@@ -41,6 +41,15 @@ Array.prototype.deepIncludes = function(arr) {
     return true;
 }
 
+Array.prototype.deepOrIncludes = function(arr) {
+    for (let i = 0; i < arr.length; i++) {
+        if (this.deepInclude(arr[i])) {
+            return true;
+        }        
+    }
+    return false;
+}
+
 Array.prototype.remove = function(e) {
     this.splice(this.indexOf(e), 1);
 }

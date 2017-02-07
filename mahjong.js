@@ -3,6 +3,8 @@ require('./module/action');
 require('./module/check');
 require('./module/rich');
 require('./module/score');
+require('./module/hwaryo');
+require('./module/etc');
 
 require('./module/debug');
 
@@ -386,6 +388,7 @@ Mahjong.prototype.doAction = function (a) {
 
             // 영상패 쯔모
             this.tsumo(this.king, player);
+            return true;
         }
         /** 가깡
          * @param {Action} action gakang
@@ -424,13 +427,27 @@ Mahjong.prototype.doAction = function (a) {
 
             // 영상패 쯔모
             this.tsumo(this.king, player);
+
+            return true;
         }
-        case 'ron':
+        case 'ron': {
+            if (!player.state.includes('ron')) {
+                console.log('**론 불가 상태**');
+                return false;
+            }
+            let winPai = wantPai.pai;
+            win(info, player, winPai);
             return true;
-
-        case 'tsumo':
+        }
+        case 'tsumo': {
+            if (!player.state.includes('tsumo!')) {
+                console.log('**쯔모! 불가 상태**');
+                return false;
+            }
+            let winPai = player.tsumoPai;
+            win(info, player, winPai);
             return true;
-
+        }
         /** 캔슬
          */
         case 'cancel': {
@@ -546,47 +563,7 @@ Mahjong.prototype.nextTurn = function () {
 }
 
 /** 패 받기 */
-Mahjong.prototype.tsumo = function (src, player) {
-    // 남은 패가 없으면 유국
-    if (this.info.lastPai == 0) {
-        this.uguk();
-        return;
-    }
-
-    this.info.lastPai--;
-    pai = src.pop();
-    player.tsumoPai = pai;
-    player.state.push('tsumo');
-
-    if (src == this.king) {
-        player.state.push('kingtsumo');
-        this.king.popPush(this.dora);
-    }
-
-    // 안깡 체크
-    if (checkAnkang(player.sonPai.concat(pai)).length != 0) {
-        player.state.push('ankang');
-    }
-
-    // 가깡 체크
-    console.log('checkGakang(player.cry, player.sonPai.concat(pai)): ', checkGakang(player.cry, player.sonPai.concat(pai)));
-    if (checkGakang(player.cry, player.sonPai.concat(pai)) != 0) {
-        player.state.push('gakang');
-    }
-
-    // 리치 체크
-    if (player.menjen && !player.rich) {
-        let richPai = checkRich(player);
-        if (richPai.length != 0) {
-            player.state.push('rich');
-        }
-    }
-
-    // 쯔모 체크
-    if (checkWin(this.info, player, pai)) {
-        player.state.push('tsumo!');
-    }
-}
+Mahjong.prototype.tsumo = tsumo;
 
 Mahjong.prototype.uguk = function() {
     console.log('**유국**');
