@@ -118,32 +118,50 @@ $(function () {
 });
 
 function setGame() {
-    $('#wait').hide();
+    $('#wait').remove();
 
     $('#gameview').append(
-        '<p id="info"></p>' +
-        '<p id="dora"></p>' +
+        '<div class="top">' +
+        '<div id="player2"><span id="score2"></span>' +
+        '<span id="cry2"></span></div>' +
+        '</div>' +
 
-        '<p><span id="score0"></span>' +
-        '<span id="river0"></span>' +
-        '<span id="cry0"></span></p>' +
+        '<div class="middle">' +
+        '<div id="player3"><span id="score3"></span>' +
+        '<span id="cry3"></span></div>' +
 
-        '<p><span id="score1"></span>' +
-        '<span id="river1"></span>' +
-        '<span id="cry1"></span></p>' +
+        '<div class="center">' +
+        '  <div class="centertop">' +
+        '    <span id="river2"></span>' +
+        '  </div>' +
+        '  <div class="centermiddle">' +
+        '    <span id="river3"></span>' +
+        '    <div id="infobox">' +
+        '    <span id="info"></span><br>' +
+        '    <span id="dora"></span>' + 
+        '    </div>' +
+        '    <span id="river1"></span>' +
+        '  </div>' +
+        '  <div class="centerbottom">' +
+        '    <span id="river0"></span>' +
+        '  </div>' +
+        '</div>' +
 
-        '<p><span id="score2"></span>' +
-        '<span id="river2"></span>' +
-        '<span id="cry2"></span></p>' +
+        '<div id="player1"><span id="score1"></span>' +
+        '<span id="cry1"></span></div>' +
+        '</div>' +
 
-        '<p><span id="score3"></span>' +
-        '<span id="river3"></span>' +
-        '<span id="cry3"></span></p>' +
+        '<div class="bottom">' +
+        '<div id="player0"><span id="score0"></span>' +
+        '' +
+        '<span id="cry0"></span></div>' +
 
         '<p id="btn"></p>' +
         '<p id="sonPai"></p>' +
+        '</div>' +
 
-        '<div id="panend"></div>'
+        '<div id="panend"></div>' +
+        '<p id="state"></p>'
     )
 
     $('#panend').hide();
@@ -186,8 +204,6 @@ function refreshInfo() {
         let river = mj.river[i];
         html = '버림패: ';
         river.forEach(function (expai) {
-            // for (let j = 0; j < river.length; j++) {
-            //     expai = river[i];
             let cls = '';
             if (expai.rich == true) {
                 cls += 'rotate1 ';
