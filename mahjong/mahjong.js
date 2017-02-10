@@ -1,12 +1,12 @@
-require('./module/util');
-require('./module/action');
-require('./module/check');
-require('./module/rich');
-require('./module/score');
-require('./module/hwaryo');
-require('./module/etc');
+require('./util');
+require('./action');
+require('./check');
+require('./rich');
+require('./score');
+require('./hwaryo');
+require('./etc');
 
-require('./module/debug');
+require('./debug');
 
 /** Mahjong Class
  * @author RaiKuma
@@ -16,7 +16,7 @@ require('./module/debug');
  */
 let Mahjong = function (initScore) {
     // 초기 게임 정보
-    this.info = { guk: 0, bon: 0, oya: 0, lastPai: 0, yon: false };
+    this.info = { guk: 0, bon: 0, oya: 0, lastPai: 0, yon: false, gongtak: 0 };
     this.paiSan = [];   // 패산
     this.king = [];     // 왕패
     this.players = [];  // 플레이어 정보
@@ -40,6 +40,10 @@ Mahjong.prototype.setGame = function () {
     this.paiSan = [];
     this.king = [];
     this.dora = [];
+    this.info.yon = false;
+    this.info.uguk = {
+        uguk: false,
+    }
     // 편의용 변수 선언
     let paiSan = this.paiSan;
     let oya = this.info.oya;
@@ -106,7 +110,6 @@ Mahjong.prototype.nextGame = function (yon) {
         this.info.guk++;
         this.info.oya = (this.info.oya + 1) % 4;
     }
-    this.info.yon = false;
 }
 
 Mahjong.prototype.doAction = function (a) {
@@ -181,6 +184,9 @@ Mahjong.prototype.doAction = function (a) {
                 }
                 player.rich = true;
                 player.ilbal = true;
+
+                player.score -= 1000;
+                this.info.gongtak += 1000;
             }
 
             // 첫순 날아감

@@ -6,7 +6,7 @@ checkWin = function (info, player, winPai) {
 
     // 후리텐
     if (player.freeten == true) {
-        console.log('**후리텐2**');
+        console.log('**후리텐2**', player.ga);
         return false;
     }
     if (!player.state.includes('tsumo')) {
@@ -15,7 +15,7 @@ checkWin = function (info, player, winPai) {
         for (let i = 0; i < player.river.length; i++) {
             let pai = player.river[i].pai;
             if (waitPai.includes(pai)) {
-                console.log('**후리텐1**');
+                console.log('**후리텐1**', player.ga);
                 return false;
             }
         }
@@ -445,7 +445,7 @@ getPaiInfo = function (info, player, sonChunk, pai) {
     ret.pais = player.sonPai.concat(pai);
     ret.chunks = sonChunk.deepCopy();
     player.cry.forEach(function (cry) {
-        ret.pais.concat(cry.pais);
+        ret.pais = ret.pais.concat(cry.pais);
         ret.chunks.push(cry.pais);
     });
 

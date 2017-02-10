@@ -122,6 +122,8 @@ win = function (player, winPai) {
     // 족보가 있는 모양이 있는가
     let jocbo = [];
     let winInfo = {
+        player: player,
+        winPai: winPai,
         jocbo: [],
         pan: 0,
         bu: 0,
@@ -150,21 +152,23 @@ win = function (player, winPai) {
             winInfo.bu = bu;
         }
     }
+
+    // 화료 정보
     if (player.state.includes('tsumo')) {
         winInfo.type = 'tsumo';
     } else {
         winInfo.type = 'ron';
     }
     winInfo.score = calcScore(player.ga, winInfo.pan, winInfo.bu, winInfo.type);
-    console.log('pan: ', winInfo.pan);
-    console.log('bu: ', winInfo.bu);
-    console.log('score: ', winInfo.score);
+    console.log('winInfo: ', winInfo);
 
-    let bonus = this.bon*300;
+    // 점수 이동
+    let bonus = this.info.bon*300;
+    console.log('bonus: ', bonus, this.info.gongtak);
     if (winInfo.type == 'tsumo') {
         for (let i = 0; i < players.length; i++) {
             if (players[i] == player) {
-                players[i].score += winInfo.score[0] + winInfo.score[1] * 2 + bonus;
+                players[i].score += winInfo.score[0] + winInfo.score[1] * 2 + bonus + this.info.gongtak;
             } else if (i == info.oya) {
                 players[i].score -= winInfo.score[0] + bonus/3;
             } else {
@@ -172,11 +176,12 @@ win = function (player, winPai) {
             }
         }
     } else {
-        player.score += winInfo.score + bonus;
+        player.score += winInfo.score + bonus + this.info.gongtak;
         players[info.turn].score -= winInfo.score + bonus;
     }
+    this.info.gongtak = 0;
     if (players.indexOf(player) == info.oya) {
-        this.yon = true;
+        this.info.yon = true;
     }
 
     this.players.forEach(function (player) {
@@ -184,7 +189,7 @@ win = function (player, winPai) {
     });
 
     console.log('**화료**');
-    return true;
+    return winInfo;
 }
 
 /** 유국 */
@@ -218,5 +223,11 @@ uguk = function () {
         winPlayers[0] == players[this.info.oya]) {
         console.log('**연장**');
         this.info.yon = true;
+    }
+
+    this.info.uguk = {
+        uguk:true,
+        winPlayers: winPlayers,
+        losePlayers: losePlayers
     }
 }

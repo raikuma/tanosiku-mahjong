@@ -5,6 +5,8 @@ module.exports = function (app, io) {
     let rooms = [];
     let roomNum = 0;
 
+    let debugroom = null;
+
     app.get('/lobby', function (req, res) {
         // 로그인 확인
         if (!req.session.name) {
@@ -124,6 +126,28 @@ module.exports = function (app, io) {
         }
         // 방이 없으면 로비로 빠꾸
         res.redirect('/lobby');
+    });
+    app.get('/debug/game', function (req, res) {
+        // info는 공개 가능한 정보
+        if (debugroom == null) {
+            debugroom = {
+                info: {
+                    id: 255,
+                    title: 'DebugRoom',
+                    people: 0,
+                    pass: false
+                },
+                pass: req.body.pass,
+                serial: ''
+            };
+            // 게임매니저 초기화
+            debugroom.gm = new GameManager(this, debugroom, io)
+            console.log('make room #', 255);
+        }
+
+        res.render('game', {
+            id: 255
+        });
     });
     //-------------------------------------------
 

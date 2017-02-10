@@ -5,3 +5,11 @@
     -ms-transform: rotate(-90deg);
     transform: rotate(-90deg);
 }
+
+.trans {
+    opacity: 0.5;
+}
+
+.strong {
+    outline: #F6FF00 solid;
+}

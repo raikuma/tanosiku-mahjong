@@ -1,4 +1,4 @@
-const Mahjong = require('./mahjong')
+const Mahjong = require('./mahjong/mahjong')
 let mj = new Mahjong(25000);
 mj.setGame();
 
@@ -34,13 +34,13 @@ module.exports = function (app, _io) {
             // mj.players[1].sonPai = [42, 42, 42, 42, 41, 41, 31, 31, 32, 32, 32, 33, 33];  // 자풍, 장풍
             // mj.players[1].sonPai = [12, 12, 32, 32, 41, 41, 22, 22, 13, 13, 45, 45, 46];  // 칠대자
             // mj.players[1].sonPai = [11, 11, 11, 23, 23, 23, 34, 34, 36, 37, 38, 46, 46];  // 삼안커
-            mj.players[1].sonPai = [14, 14, 15, 16, 17, 36, 36, 36, 25, 25, 15, 16, 17];
+            // mj.players[1].sonPai = [14, 14, 15, 16, 17, 36, 36, 36, 25, 25, 15, 16, 17];
             
             // mj.king[mj.king.length-1] = 42;
-            mj.paiSan[mj.paiSan.length-4] = 25;
+            // mj.paiSan[mj.paiSan.length-4] = 25;
             // mj.paiSan[mj.paiSan.length-5] = 36;
 
-            mj.info.lastPai = 0;
+            // mj.info.lastPai = 0;
             
             io.emit('mj', makePacket(mj));
         });
@@ -48,7 +48,7 @@ module.exports = function (app, _io) {
         socket.on('nextgame', function(socket) {
             console.log('next game');
             mj.nextGame();
-            mj.setGame();
+            mj.setGame();R
             io.emit('mj', makePacket(mj));
         });
 

@@ -275,7 +275,8 @@ function refreshInfo() {
     $('#info').text(
         GA(parseInt(info.guk / 4)) + (info.guk % 4 + 1) + '국 ' + info.bon + '본장' +
         ' 오야: ' + info.oya + ' 차례: ' + info.turn +
-        ' 남은패: ' + mj.info.lastPai
+        ' 남은패: ' + mj.info.lastPai +
+        ' 공탁금: ' + mj.info.gongtak
     )
 
     let html = '<span>도라: </span>';
@@ -390,7 +391,7 @@ let checkAnkang = function(sonPai) {
     return kangPais;
 }
 
-checkGakang = function (crys, pais) {
+let checkGakang = function (crys, pais) {
     let ret = [];
     pais.forEach(function (pai) {
         crys.forEach(function (cry) {

@@ -3,6 +3,7 @@ const app = express();
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const session = require('express-session')
+const path = require('path');
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
