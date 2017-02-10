@@ -1,11 +1,8 @@
 let mj;
-let socket;
 let chiPais;
 let lastPlayer = 0;
 
 $(function () {
-    socket = io('/game255');
-
     socket.on('user', function (people) {
         $('#msg').text('There are ' + people + ' people');
     });
