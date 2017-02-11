@@ -3,6 +3,8 @@ let chiPais;
 let lastPlayer = 0;
 
 $(function () {
+    $('#gameview').hide();
+
     socket.on('user', function (people) {
         $('#msg').text('There are ' + people + ' people');
     });
@@ -53,7 +55,7 @@ $(function () {
             cry.pais.splice(from, 0, tmp);
             for (let j = 0; j < cry.pais.length; j++) {
                 if (j == from) {
-                    html += IMG(cry.pais[j], 'rotate1');
+                    html += IMG(cry.pais[j], 'rotate');
                 } else {
                     html += IMG(cry.pais[j]);
                 }
@@ -118,52 +120,8 @@ $(function () {
 });
 
 function setGame() {
-    $('#wait').remove();
-
-    $('#gameview').append(
-        '<div class="top">' +
-        '<div id="player2"><span id="score2"></span>' +
-        '<span id="cry2"></span></div>' +
-        '</div>' +
-
-        '<div class="middle">' +
-        '<div id="player3"><span id="score3"></span>' +
-        '<span id="cry3"></span></div>' +
-
-        '<div class="center">' +
-        '  <div class="centertop">' +
-        '    <span id="river2"></span>' +
-        '  </div>' +
-        '  <div class="centermiddle">' +
-        '    <span id="river3"></span>' +
-        '    <div id="infobox">' +
-        '    <span id="info"></span><br>' +
-        '    <span id="dora"></span>' + 
-        '    </div>' +
-        '    <span id="river1"></span>' +
-        '  </div>' +
-        '  <div class="centerbottom">' +
-        '    <span id="river0"></span>' +
-        '  </div>' +
-        '</div>' +
-
-        '<div id="player1"><span id="score1"></span>' +
-        '<span id="cry1"></span></div>' +
-        '</div>' +
-
-        '<div class="bottom">' +
-        '<div id="player0"><span id="score0"></span>' +
-        '' +
-        '<span id="cry0"></span></div>' +
-
-        '<p id="btn"></p>' +
-        '<p id="sonPai"></p>' +
-        '</div>' +
-
-        '<div id="panend"></div>' +
-        '<p id="state"></p>'
-    )
-
+    $('#wait').hide();
+    $('#gameview').show();
     $('#panend').hide();
 
     socket.emit('ready');
@@ -197,16 +155,16 @@ function refreshInfo() {
 
     // 점수, 버림패, 운패
     for (let i = 0; i < 4; i++) {
-        html = GA(i) + ' - 점수: '
+        html = GA((player.ga + i) % 4) + ' - 점수: '
         html += mj.score[i] + ' ';
         $('#score' + i).html(html);
 
         let river = mj.river[i];
-        html = '버림패: ';
+        html = '';
         river.forEach(function (expai) {
             let cls = '';
             if (expai.rich == true) {
-                cls += 'rotate1 ';
+                cls += 'rotate ';
             }
             if (expai.take == true) {
                 cls += 'trans ';
@@ -219,9 +177,9 @@ function refreshInfo() {
         $('#river' + i).html(html);
 
         let cry = mj.cry[i];
-        html = '운패: ';
+        html = '';
         cry.forEach(function (cry) {
-            let from = (i - cry.from + 4) % 4 - 1;
+            let from = (player.ga + i - cry.from + 4) % 4 - 1;
             if (cry.pais.length == 4 && from == 2) {
                 from = 3;
             }
@@ -229,7 +187,7 @@ function refreshInfo() {
             cry.pais.splice(from, 0, tmp);
             for (let j = 0; j < cry.pais.length; j++) {
                 if (j == from) {
-                    html += IMG(cry.pais[j], 'rotate1');
+                    html += IMG(cry.pais[j], 'rotate');
                 } else {
                     html += IMG(cry.pais[j]);
                 }
@@ -301,7 +259,7 @@ function setTrigger() {
         $('#btn').append('<button id="rich">리치</button>');
         $('#rich').click(function () {
             let richPai = checkRich(player);
-
+            
             // 버튼 등록
             $('#sonPai img').unbind('click');
             $('#btn').hide();

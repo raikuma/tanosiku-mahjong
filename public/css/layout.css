@@ -1,0 +1,99 @@
+html {
+    height: 100%;
+}
+
+body {
+    background-color: #E5C89B;
+    height: 100%;
+    margin: 0;
+}
+
+.top {
+    background-color: #B0E59B;
+    width: 85%;
+    height: 15%;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+}
+
+.left {
+    background-color: #DF8080;
+    width: 15%;
+    height: 85%;
+    position: absolute;
+    top: 15%;
+    left: 0%;
+}
+
+.right {
+    background-color: #DF8080;
+    width:15%;
+    height: 85%;
+    position: absolute;
+    top: 0%;
+    right: 0%;
+}
+
+.bottom {
+    background-color: #D386BC;
+    width: 85%;
+    height: 30%;
+    position: absolute;
+    bottom: 0%;
+    left: 15%;
+}
+
+.center {
+    background-color: #DBE67A;
+    width: 70%;
+    height: 55%;
+    position: absolute;
+    top: 15%;
+    left: 15%;
+}
+
+.top2 {
+    background-color: #B0E59B;
+    width: 65%;
+    height: 35%;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+}
+
+.left2 {
+    background-color: #DF8080;
+    width: 35%;
+    height: 65%;
+    position: absolute;
+    top: 35%;
+    left: 0%;
+}
+
+.right2 {
+    background-color: #DF8080;
+    width:35%;
+    height: 65%;
+    position: absolute;
+    top: 0%;
+    right: 0%;
+}
+
+.bottom2 {
+    background-color: #D386BC;
+    width: 65%;
+    height: 35%;
+    position: absolute;
+    bottom: 0%;
+    left: 35%;
+}
+
+.center2 {
+    background-color: #DBE67A;
+    width: 30%;
+    height: 30%;
+    position: absolute;
+    top: 35%;
+    left: 35%;
+}

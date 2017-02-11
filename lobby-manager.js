@@ -91,7 +91,7 @@ module.exports = function (app, io) {
                         return
                     }
                 }
-                res.render('game', {                                // 인증 되면 게임 방으로
+                res.render('gameview', {                                // 인증 되면 게임 방으로
                     id: req.params.id
                 });
                 return
@@ -118,7 +118,7 @@ module.exports = function (app, io) {
                         return
                     }
                 }
-                res.render('game', {                                // 인증 되면 게임 방으로
+                res.render('gameview', {                                // 인증 되면 게임 방으로
                     id: req.params.id
                 });
                 return
@@ -145,7 +145,7 @@ module.exports = function (app, io) {
             console.log('make room #', 255);
         }
 
-        res.render('game', {
+        res.render('gameview', {
             id: 255
         });
     });

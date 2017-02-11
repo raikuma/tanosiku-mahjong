@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Expires" content="-1">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache">
+
+  <title>Game</title>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <!--<link rel="stylesheet" type="text/css" href="/css/style.css">-->
+  <link rel="stylesheet" type="text/css" href="/css/layout.css">
+  <link rel="stylesheet" type="text/css" href="/css/mahjong.css">
+
+  <!-- jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+</head>
+
+<body>
+  <div id="wait">Hey, this is game room #
+    <%= id %>
+      <p id="msg"></p>
+  </div>
+
+  <div id="gameview">
+    <div class="top">
+      <div id="score2"></div>
+      <div id="cry2"></div>
+    </div>
+    <div class="left">
+      <div id="score3"></div>
+      <div id="cry3"></div>
+    </div>
+    <div class="center">
+      <div class="top2"><div id="river2"></div></div>
+      <div class="left2"><div id="river3"></div></div>
+      <div class="center2">
+        <div id="info"></div>
+        <div id="dora"></div>
+      </div>
+      <div class="right2"><div id="river1"></div></div>
+      <div class="bottom2"><div id="river0"></div></div>
+    </div>
+    <div class="right">
+      <div id="score1"></div>
+      <div id="cry1"></div>
+    </div>
+    <div class="bottom">
+      <div>
+        <span id="score0"></span>
+        <span id="btn"></span>
+      </div>
+      <div>
+        <span id="sonPai"></span>
+        <span id="cry0"></span>
+      </div>
+    </div>
+    <div id="panend"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    socket = io('/game<%= id %>');
+  </script>
+  <script src="/js/util.js"></script>
+  <script src="/js/mahjong.js"></script>
+  <script src="/js/game.js"></script>
+</body>
+
+</html>

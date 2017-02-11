@@ -1,6 +1,10 @@
 checkChi = function (sonPai, pai) {
     let chiPais = [];
 
+    if (parseInt(pai / 10) == 4) {
+        return chiPais;
+    }
+
     // 1번 케이스
     if (sonPai.includes(pai - 2) && sonPai.includes(pai - 1)) {
         chiPais.push([pai - 2, pai - 1]);

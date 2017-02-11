@@ -111,6 +111,7 @@ tsumo = function (src, player) {
 win = function (player, winPai) {
     let info = this.info;
     let players = this.players;
+    let dora = this.dora;
     let sonPai = player.sonPai;
 
     // 화료 가능 모양인가
@@ -119,7 +120,7 @@ win = function (player, winPai) {
         return false;
     }
 
-    // 족보가 있는 모양이 있는가
+    // 족보중 가장 높은 점수로 선택
     let jocbo = [];
     let winInfo = {
         player: player,
@@ -152,6 +153,20 @@ win = function (player, winPai) {
             winInfo.bu = bu;
         }
     }
+
+    // 도라
+    let doracnt = 0;
+    let pais = player.sonPai.concat(winPai);
+    for (let i = 0; i < pais.length; i++) {
+        let pai = getDora(pais[i]);
+        if (dora.includes(pai)) {
+            doracnt++;
+        }
+    }
+    if (doracnt > 0) {
+        jocbo.push(doracnt + 'dora');
+    }
+    winInfo.pan += doracnt;
 
     // 화료 정보
     if (player.state.includes('tsumo')) {

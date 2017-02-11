@@ -83,9 +83,10 @@ module.exports = function (lobby, room, io) {
         mj = new Mahjong(25000);
         mj.setGame();
 
-        // mj.players[1].sonPai = [32, 32, 32, 32, 33, 34, 36, 36, 36, 46, 38, 38, 38];  // 녹일색
-        // mj.paiSan[mj.paiSan.length - 1] = 46;
+        mj.players[1].sonPai = [32, 32, 32, 32, 33, 34, 36, 36, 36, 46, 38, 38, 38];  // 녹일색
+        // mj.paiSan[mj.paiSan.length - 1] = 47;
         // mj.info.lastPai = 0;
+        mj.dora[0] = 31;
 
         gameio.emit('game start');
     }
@@ -107,9 +108,10 @@ module.exports = function (lobby, room, io) {
             player: mj.players[player],
         }
         for (let i = 0; i < 4; i++) {
-            ret.score.push(mj.players[i].score);
-            ret.river.push(mj.players[i].river);
-            ret.cry.push(mj.players[i].cry);
+            let j = (player + i) % 4; // 자신으로 부터 오른쪽으로 돌며 정보를 모은다
+            ret.score.push(mj.players[j].score);
+            ret.river.push(mj.players[j].river);
+            ret.cry.push(mj.players[j].cry);
         }
         return ret;
     }
